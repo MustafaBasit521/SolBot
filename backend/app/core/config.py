@@ -12,7 +12,11 @@ class Settings(BaseSettings):
 
     openrouter_api_key: str
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    llm_model: str = "openai/gpt-oss-120b:free"
+    llm_model: str = "openai/gpt-oss-20b:free"
+
+    jwt_secret_key: str
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 60 * 24 * 7  # 7 days
 
 
 settings = Settings()

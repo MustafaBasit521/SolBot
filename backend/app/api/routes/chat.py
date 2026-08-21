@@ -1,18 +1,18 @@
 import logging
-import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from openai import APIError
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_owned_conversation
 from app.database.connection import get_db
 from app.database.repositories import (
-    conversation_repository,
     emotion_repository,
     message_repository,
     risk_repository,
     strategy_repository,
 )
+from app.models.conversation import Conversation
 from app.schemas.chat import ChatEmotionOut, ChatRequest, ChatResponse, ChatRiskOut
 from app.services import safety_service, strategy_service
 from app.services.emotion_service import classify_emotion
@@ -32,11 +32,12 @@ _CRISIS_RISK_THRESHOLD = 3
     response_model=ChatResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def chat(conversation_id: uuid.UUID, payload: ChatRequest, db: Session = Depends(get_db)):
-    if not conversation_repository.get_conversation_by_id(db, conversation_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found"
-        )
+def chat(
+    payload: ChatRequest,
+    conversation: Conversation = Depends(get_owned_conversation),
+    db: Session = Depends(get_db),
+):
+    conversation_id = conversation.id
 
     user_message = message_repository.create_message(
         db, conversation_id=conversation_id, role="user", content=payload.content

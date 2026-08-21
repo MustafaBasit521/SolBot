@@ -380,3 +380,62 @@ validated taxonomy decision -- worth comparing against alternatives once
 there's real evaluation data, per the briefing's own model-selection
 principle (don't default to the first option without comparing
 accuracy/size/speed/suitability).
+
+---
+
+## 2026-08-21 — Real auth (JWT) + fixed an ownership security gap
+
+**What:** `POST /api/auth/login` issuing JWTs, and a rework of every
+conversation/message/chat/user route to derive the acting user from the
+token instead of trusting an ID in the URL.
+
+**Why:** Two things needed doing together. First, users had hashed
+passwords sitting in the DB with no way to actually log in. Second --
+more important -- every existing route trusted whatever `user_id` or
+`conversation_id` was in the URL path with **no check that it belonged to
+the caller**. Anyone who obtained or guessed a UUID could read or delete
+someone else's conversations and messages. Bolting JWT on top of that
+without fixing it would have been pointless, so this batch closes both at
+once.
+
+**How:**
+- `app/core/security.py` -- `create_access_token`/`decode_access_token`
+  (PyJWT, HS256, 7-day expiry, secret from `JWT_SECRET_KEY` in `.env`,
+  generated fresh with `secrets.token_urlsafe(32)` -- never reused from
+  anywhere else).
+- `app/api/deps.py` -- two shared dependencies:
+  - `get_current_user` -- validates the Bearer token, loads the user, 401
+    on anything wrong (missing/expired/garbage token, deleted user).
+  - `get_owned_conversation` -- loads a conversation by ID *and* checks
+    `conversation.user_id == current_user.id`, raising **404** (not 403)
+    on mismatch, so a guessed ID doesn't even confirm another user's
+    conversation exists.
+- Route changes:
+  - `POST /api/users` stays public (signup). `GET/DELETE /api/users/{id}`
+    replaced with `GET/DELETE /api/users/me` -- no more passing an
+    arbitrary user id at all.
+  - `POST/GET /api/users/{user_id}/conversations` replaced with
+    `POST/GET /api/conversations`, scoped to the token's user --
+    `user_id` is never read from client input anymore, only from the
+    verified token.
+  - `conversations/{id}`, `conversations/{id}/messages`, and
+    `conversations/{id}/chat` all now depend on `get_owned_conversation`
+    instead of a raw `conversation_id` + manual lookup, so the ownership
+    check can't accidentally be skipped in any one of them.
+
+**Where:** `app/core/security.py`, `app/api/deps.py` (new),
+`app/api/routes/auth.py` (new), `app/schemas/auth.py` (new),
+`app/api/routes/{users,conversations,messages,chat}.py` (all reworked)
+
+**Tested end-to-end against the real Neon DB:** registered two users,
+logged in as both, confirmed wrong password -> 401, no token -> 403,
+garbage token -> 401. Created a conversation as user A, then confirmed
+user B gets **404** trying to read it, **404** trying to chat in it, and
+user A can still read/list it normally. This is the test that actually
+matters here -- it proves the isolation bug is fixed, not just that
+login works.
+
+**Not done yet:** refresh tokens / logout / token revocation (a 7-day
+JWT with no revocation list is a reasonable MVP tradeoff, not a final
+security posture), rate limiting on login (no lockout after repeated
+failed attempts yet).

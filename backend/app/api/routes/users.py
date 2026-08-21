@@ -1,11 +1,11 @@
-import uuid
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
 from app.core.security import hash_password
 from app.database.connection import get_db
 from app.database.repositories import user_repository
+from app.models.user import User
 from app.schemas.user import UserCreate, UserOut
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -25,17 +25,11 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/{user_id}", response_model=UserOut)
-def get_user(user_id: uuid.UUID, db: Session = Depends(get_db)):
-    user = user_repository.get_user_by_id(db, user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    return user
+@router.get("/me", response_model=UserOut)
+def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: uuid.UUID, db: Session = Depends(get_db)):
-    user = user_repository.get_user_by_id(db, user_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    user_repository.delete_user(db, user)
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_repository.delete_user(db, current_user)
