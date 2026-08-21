@@ -1,0 +1,135 @@
+.patterns-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 20px 24px;
+  background: var(--paper-app);
+  min-height: 100%;
+}
+
+.patterns-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-meta);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.patterns-heading {
+  font-size: 1.6rem;
+  color: var(--ink-primary);
+  margin: 4px 0 6px;
+}
+
+.patterns-subtitle {
+  color: var(--ink-secondary);
+  margin: 0 0 24px;
+  font-size: 0.9rem;
+}
+
+.patterns-range {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.patterns-range-button {
+  background: #ffffff;
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+
+.patterns-range-button.active {
+  background: var(--green-base);
+  color: var(--paper-raised);
+  border-color: var(--green-base);
+}
+
+.patterns-card {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-hairline);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.patterns-card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.95rem;
+  color: var(--ink-primary);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.patterns-card-meta {
+  font-size: 0.75rem;
+  color: var(--ink-meta);
+  font-weight: 400;
+}
+
+.patterns-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+  margin-top: 8px;
+}
+
+.patterns-legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.patterns-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.patterns-theme-tag {
+  background: var(--clay-tint);
+  color: var(--clay-text);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.patterns-theme-count {
+  opacity: 0.7;
+  margin-left: 4px;
+}
+
+.patterns-empty {
+  color: var(--ink-meta);
+  font-size: 0.85rem;
+}
+
+/* Tablet and up: mood-trend and themes cards sit side by side instead of
+   stacked. */
+@media (min-width: 800px) {
+  .patterns-page {
+    max-width: 900px;
+    padding: 32px 32px 32px;
+  }
+
+  .patterns-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1100px) {
+  .patterns-page {
+    max-width: 1100px;
+  }
+}

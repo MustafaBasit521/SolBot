@@ -39,3 +39,25 @@ export interface ChatResponse {
   risk: ChatRisk;
   strategies: string[];
 }
+
+export interface CheckIn {
+  id: string;
+  user_id: string;
+  mood: number;
+  stress: number;
+  energy: number;
+  social_connection: number;
+  overall_wellbeing: number;
+  created_at: string;
+}
+
+export interface MoodTrendPoint {
+  created_at: string;
+  mood: number;
+  stress: number;
+}
+
+export interface EmotionalTheme {
+  label: string;
+  count: number;
+}

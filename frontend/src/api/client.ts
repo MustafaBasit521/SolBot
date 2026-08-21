@@ -1,4 +1,12 @@
-import type { ChatResponse, Conversation, Message, User } from "./types";
+import type {
+  CheckIn,
+  ChatResponse,
+  Conversation,
+  EmotionalTheme,
+  Message,
+  MoodTrendPoint,
+  User,
+} from "./types";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8123/api";
 
@@ -100,4 +108,31 @@ export function sendChatMessage(conversationId: string, content: string): Promis
     method: "POST",
     body: JSON.stringify({ content }),
   });
+}
+
+export interface CheckInInput {
+  mood: number;
+  stress: number;
+  energy: number;
+  social_connection: number;
+  overall_wellbeing: number;
+}
+
+export function createCheckIn(payload: CheckInInput): Promise<CheckIn> {
+  return request<CheckIn>("/check-ins", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function listCheckIns(days?: number): Promise<CheckIn[]> {
+  return request<CheckIn[]>(`/check-ins${days ? `?days=${days}` : ""}`);
+}
+
+export function getMoodTrend(days = 14): Promise<MoodTrendPoint[]> {
+  return request<MoodTrendPoint[]>(`/insights/mood-trend?days=${days}`);
+}
+
+export function getEmotionalThemes(days = 14, limit = 6): Promise<EmotionalTheme[]> {
+  return request<EmotionalTheme[]>(`/insights/emotional-themes?days=${days}&limit=${limit}`);
 }

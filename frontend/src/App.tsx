@@ -4,6 +4,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { LoginPage } from "./pages/LoginPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
+import { CheckInPage } from "./pages/CheckInPage";
+import { PatternsPage } from "./pages/PatternsPage";
 
 export default function App() {
   return (
@@ -24,6 +26,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ChatPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/check-in"
+            element={
+              <ProtectedRoute>
+                <CheckInPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/patterns"
+            element={
+              <ProtectedRoute>
+                <PatternsPage />
               </ProtectedRoute>
             }
           />

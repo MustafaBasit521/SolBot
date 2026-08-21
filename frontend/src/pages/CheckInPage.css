@@ -1,0 +1,113 @@
+.checkin-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 20px 24px;
+  background: var(--paper-app);
+  min-height: 100%;
+}
+
+.checkin-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-meta);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.checkin-heading {
+  font-size: 1.6rem;
+  color: var(--ink-primary);
+  margin: 4px 0 6px;
+}
+
+.checkin-subtitle {
+  color: var(--ink-secondary);
+  margin: 0 0 24px;
+  font-size: 0.9rem;
+}
+
+.checkin-card {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-hairline);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.checkin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.checkin-card-label {
+  font-size: 0.95rem;
+  color: var(--ink-primary);
+  font-weight: 600;
+}
+
+.checkin-card-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.checkin-slider {
+  width: 100%;
+  accent-color: var(--dimension-color, var(--green-base));
+}
+
+.checkin-endpoints {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--ink-quiet);
+  margin-top: 4px;
+}
+
+.checkin-submit {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--green-base);
+  color: var(--paper-raised);
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+.checkin-saved {
+  background: var(--green-tint);
+  color: var(--green-pressed);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  text-align: center;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+
+/* Tablet and up: two check-in cards per row instead of one full-width
+   column at a time. */
+@media (min-width: 700px) {
+  .checkin-page {
+    max-width: 760px;
+    padding: 32px 32px 32px;
+  }
+
+  .checkin-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .checkin-submit {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1100px) {
+  .checkin-page {
+    max-width: 960px;
+  }
+}

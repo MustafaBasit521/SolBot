@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createConversation, listConversations } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import type { Conversation } from "../api/types";
+import { BottomNav } from "../components/BottomNav";
 import "./HomePage.css";
 
 export function HomePage() {
@@ -69,6 +70,8 @@ export function HomePage() {
           ))}
         </ul>
       </section>
+
+      <BottomNav />
     </div>
   );
 }

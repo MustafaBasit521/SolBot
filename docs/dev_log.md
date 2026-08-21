@@ -738,3 +738,121 @@ signup + 3 conversations created at each size: confirmed Home actually
 renders 1/2/3 columns respectively (not just resized spacing), and Chat
 bubbles are visibly narrower relative to the container at each larger
 breakpoint. Zero console errors.
+
+---
+
+## 2026-08-22 — Check-in and Patterns screens, wired to real backend data
+
+**What:** Screens 06 (Wellbeing check-in) and 09 (Patterns/insights)
+from the design, plus a shared bottom nav (Home / Check-in / Patterns)
+across Home, Chat, and both new screens so they're actually reachable.
+
+**Why:** The backend work from two batches ago (check-ins, mood-trend,
+emotional-themes) had no UI in front of it yet.
+
+**How:**
+- **Check-in** (`CheckInPage`): 5 range sliders (0-100), each with its
+  own hue matching the design (`--data-mood`, `--data-stress`,
+  `--data-energy`, `--data-social`, green for overall). A word-mapping
+  helper (`lib/checkInWords.ts`) converts the raw 0-100 value to one of
+  5 words per dimension (e.g. mood 0-20 -> "Low" .. 80-100 -> "Bright")
+  -- the number itself is never shown, matching the design's "worded as
+  descriptions rather than scores" note. Posts to `POST /api/check-ins`
+  on save.
+- **Patterns** (`PatternsPage`): a 7/14/90-day range toggle, a hand-rolled
+  inline SVG line chart (no charting library -- a handful of points on
+  a fixed viewBox, not worth a new dependency) plotting mood and stress
+  from `GET /api/insights/mood-trend`, with the latest point on each
+  line marked in clay per the design ("latest point"). Emotional themes
+  render as tags from `GET /api/insights/emotional-themes`. Both cards
+  have real empty states ("no check-ins yet", "no conversations yet")
+  rather than just blanking out.
+- **`BottomNav`** component (Home/Check-in/Patterns, active-state
+  highlighting via the current route) added to Home, Chat, Check-in,
+  and Patterns -- this is also what makes the two new screens reachable
+  at all; without it there was no navigation path to them.
+- Same pattern as the last responsive batch: CSS files with real
+  `@media` breakpoints (Check-in cards go single-column -> 2-column
+  grid at tablet; Patterns' mood-trend and themes cards go stacked ->
+  side-by-side at tablet).
+
+**Where:** `frontend/src/pages/{CheckInPage,PatternsPage}.tsx` (new)
++ matching `.css` files, `frontend/src/lib/checkInWords.ts` (new),
+`frontend/src/components/BottomNav.tsx` (new), `frontend/src/api/client.ts`
+(added check-in/insights calls), `frontend/src/api/types.ts` (added
+types), `frontend/src/App.tsx` (new routes)
+
+**Tested end-to-end in a real browser against the live backend:**
+signed up, saved multiple check-ins with distinct slider values,
+confirmed the word labels update live as sliders move (e.g. mood=20 ->
+"Heavy", mood=90 -> "Bright"), sent a real chat message, then confirmed
+Patterns correctly shows: a 3-point mood/stress line with the right
+geometry (verified the actual SVG path coordinates match the expected
+math for the saved values), the emotional theme tag from the chat
+message, and nav active-state highlighting on every screen. Zero
+console errors across all screens.
+
+**Test-script note, not an app bug:** a generic Playwright
+`text=Patterns` selector intermittently failed to trigger navigation
+after several prior interactions on the page; switching to a specific
+`.bottom-nav-item` locator fixed it immediately -- this was test
+tooling fragility, not the app failing to navigate (confirmed by
+checking `page.url()` directly, which showed the click was simply not
+landing via the looser selector).
+
+---
+
+## 2026-08-22 — Desktop 3-pane chat shell (sidebar + chat + session context)
+
+**What:** At desktop widths (>=1100px), the Chat screen switches from
+the single scaled-up column (previous responsive batches) to the
+actual 3-column shell from the original desktop design references:
+a left sidebar (new conversation, conversation list, link to Patterns)
+and a right "Session context" panel (signals, memory, safety,
+environmental thread), with the chat thread in the middle.
+
+**Why:** The user pointed out this was a real, separate desktop layout
+in the original design references, not just a wider version of the
+mobile layout -- correctly. Everything up to this point resized bubble
+widths and container max-widths at breakpoints, but never actually
+changed the app's information architecture at desktop width the way
+the reference design does.
+
+**How:**
+- `ChatPage` now renders three siblings unconditionally
+  (`.chat-sidebar`, `.chat-main`, `.chat-context`) -- the sidebar and
+  context panel are `display: none` below 1100px and become a CSS grid
+  (`240px minmax(0,1fr) 280px`) above it. Same page, same data, just a
+  different arrangement of it -- no separate desktop-only fetch logic.
+- Sidebar: reuses `listConversations`/`createConversation` (already in
+  the API client), shows the active conversation highlighted, and a
+  link to `/patterns`. No links to Settings/About since those pages
+  don't exist yet -- a dead link would be worse than no link.
+  Bottom nav is hidden at this width since the sidebar covers Home
+  (via its own conversation list) and Patterns.
+- Session context panel, one card per design section, **not
+  uniformly real**:
+  - "Signals in this conversation" -- **real**, built from the same
+    `ChatResponse` already used for the mono signals line (refactored
+    to keep the full result in state instead of just a formatted
+    string, so both views read one source of truth).
+  - "Safety monitoring active" -- **real** static copy, honest since
+    risk detection genuinely runs on every message.
+  - "Sol remembers" and "Environmental thread" -- **explicit stubs**
+    ("still in development"), matching the same honesty standard
+    already applied to eco-anxiety earlier -- these depend on
+    long-term memory and eco-anxiety detection, neither of which
+    exist yet. Showing fabricated content in these cards would have
+    been a worse outcome than an honest placeholder.
+
+**Where:** `frontend/src/pages/ChatPage.tsx`,
+`frontend/src/pages/ChatPage.css`
+
+**Tested at three real viewport sizes against the live backend:**
+confirmed via `.isVisible()` checks (not just eyeballing) that the
+sidebar/context panel are hidden at 375px and 768px and only appear at
+1440px, with mobile's layout pixel-identical to before. At desktop, the
+Signals panel showed real tag chips (`DISAPPOINTMENT`, `SADNESS`,
+`ANNOYANCE`) matching the actual emotion classification for the
+message sent during the test. Zero console errors across all three
+sizes.
