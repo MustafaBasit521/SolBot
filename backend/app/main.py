@@ -3,7 +3,16 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, chat, conversations, health, messages, users
+from app.api.routes import (
+    auth,
+    chat,
+    check_ins,
+    conversations,
+    health,
+    insights,
+    messages,
+    users,
+)
 from app.core.config import settings
 
 logging.basicConfig(
@@ -27,3 +36,5 @@ app.include_router(users.router, prefix="/api")
 app.include_router(conversations.router, prefix="/api")
 app.include_router(messages.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
+app.include_router(check_ins.router, prefix="/api")
+app.include_router(insights.router, prefix="/api")

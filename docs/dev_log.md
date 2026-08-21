@@ -629,3 +629,66 @@ etc.) matches `requirements.txt` exactly after the cleanup.
 regardless of whether the email arrives -- there's no "confirm your
 email before logging in" flow, which wasn't asked for and would be a
 separate, bigger feature if wanted later).
+
+---
+
+## 2026-08-21 — Check-ins, insights aggregation, and data export
+
+**What:** Three backend pieces requested together, needed to support
+screens 06 (Wellbeing check-in), 09 (Patterns/insights), and 11
+(Settings' "Download my data" row).
+
+**Why:** These were the remaining gaps between what's built and the
+full 12-screen design the user shared (which matches
+`color_structures.md`'s per-screen list exactly). Scoped to just what
+those screens need -- not a general-purpose settings/preferences
+system, since nothing else (retention policy enforcement, quiet hours,
+memory toggle) has real backend behavior to control yet.
+
+**How:**
+- **Check-ins** (`check_ins` table): 5 integer sliders (mood, stress,
+  energy, social_connection, overall_wellbeing), each DB-constrained to
+  0-100. Stored as plain numbers -- the frontend maps them to the
+  design's worded endpoints ("Low".."Bright" etc.), matching the design
+  note "worded as descriptions rather than scores." `POST/GET
+  /api/check-ins`, indexed on `(user_id, created_at)` for the trend
+  query.
+- **Insights aggregation** -- no new input data, just queries over what
+  the chat pipeline already writes:
+  - `GET /api/insights/mood-trend?days=14` reads straight from
+    check-ins (that's literally what those sliders are for).
+  - `GET /api/insights/emotional-themes?days=14` is a real SQL
+    aggregation: joins `emotion_records -> messages -> conversations`,
+    filters by the current user, groups by `primary_emotion`, orders by
+    count. This is the first place in the project doing a genuine
+    multi-table join for a feature, not just CRUD.
+- **Data export** -- `GET /api/users/me/export` returns the user's
+  profile, every conversation with its full message history (a new
+  `list_all_messages_for_conversation`, unbounded, unlike the
+  last-20-messages read the chat pipeline uses), and all check-ins, as
+  one JSON document.
+
+**Where:** `app/models/check_in.py`,
+`app/database/repositories/check_in_repository.py` (new),
+`app/database/repositories/emotion_repository.py` (added
+`top_emotional_themes_for_user`),
+`app/database/repositories/message_repository.py` (added
+`list_all_messages_for_conversation`), `app/schemas/{check_in,insights}.py`,
+`app/api/routes/{check_ins,insights}.py` (new),
+`app/api/routes/users.py` (export endpoint)
+
+**Tested end-to-end against the real Neon DB:** created check-ins,
+confirmed out-of-range values (mood=101) correctly rejected with 422,
+confirmed mood-trend returns them in order. Sent a real chat message
+("I feel really disappointed in myself lately"), confirmed
+emotional-themes correctly surfaced `disappointment` from it via the
+join query. Confirmed export returns the full nested structure
+correctly. **Also re-verified isolation** on all three new endpoints
+with a second user -- empty check-ins, empty themes, empty export --
+since none of these take a user-supplied ID (everything derives from
+the authenticated token), but that's exactly the kind of assumption
+worth actually checking rather than trusting by construction.
+
+**Not done yet:** the rest of Settings (memory/retention toggles have
+no backend behavior yet since there's no memory system), the
+environmental check-in (deferred), voice (deferred).

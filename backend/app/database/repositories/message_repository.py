@@ -31,3 +31,13 @@ def list_messages_for_conversation(
     messages = list(db.scalars(stmt))
     messages.reverse()
     return messages
+
+
+def list_all_messages_for_conversation(db: Session, conversation_id: uuid.UUID) -> list[Message]:
+    """Unbounded, chronological -- for data export, not for LLM context."""
+    stmt = (
+        select(Message)
+        .where(Message.conversation_id == conversation_id)
+        .order_by(Message.created_at.asc())
+    )
+    return list(db.scalars(stmt))
