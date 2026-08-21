@@ -171,3 +171,87 @@ caution is a stopgap, not the safety module from the design), rolling
 conversation summarization (context window is currently just "last 20
 messages," no compression yet), emotion classification, memory/long-term
 recall.
+
+---
+
+## 2026-08-21 — Emotion detection and risk/safety detection
+
+**What:** Every user message now gets classified for emotion and risk
+level, both persisted to their own tables, with high risk short-circuiting
+the normal LLM reply in favor of a fixed safety message.
+
+**Why:** This is the emotion-analysis / risk-analysis stage of the
+pipeline from the original briefing's architecture (message -> emotion ->
+context -> risk -> strategy -> response) -- everything before this batch
+just had a conversational LLM with no structured understanding of what
+the user was feeling or whether they were in danger.
+
+**How:**
+- **Emotion**: a local pretrained classifier
+  (`j-hartmann/emotion-english-distilroberta-base`, ~66M params, 7 Ekman
+  emotions + neutral) via `transformers`/`torch` (CPU-only build), loaded
+  once per process rather than per-request. Chosen over routing emotion
+  classification through the LLM because it's free forever, doesn't
+  compete with the chat reply for OpenRouter's free-tier rate limit, and
+  runs fine on this machine's CPU without a GPU. This is a starting
+  choice, not a final research decision -- a GoEmotions-based model with
+  richer categories is a reasonable upgrade to compare against later.
+- **Risk**: two independent layers, combined by taking the higher result
+  of the two (safety-first: either layer can escalate, neither can
+  suppress the other).
+  - A keyword/phrase layer (`app/services/safety_service.py`) -- fast,
+    deterministic, zero-cost. Patterns are matched after stripping
+    apostrophes from both the input and the patterns, so contractions
+    match regardless of how they're typed ("don't"/"dont"/"do not").
+  - An LLM-based contextual layer, prompted to return strict JSON
+    (`{"risk_level": 0-3, "rationale": "..."}`), for indirect phrasing the
+    keyword list would miss. Configured with `max_retries=0` and a 10s
+    timeout -- this call gates a safety decision, so on a rate limit it
+    needs to fail fast and fall back to the keyword layer rather than
+    leaving the user waiting through a 24s provider backoff.
+  - `risk_level >= 3` skips the conversational LLM entirely and returns a
+    **fixed, non-generated** safety message -- reaching a trusted person /
+    contacting emergency services, deliberately with **no specific
+    hotline number or URL**, matching the briefing's rule against
+    hallucinated crisis resources and the existing design's own
+    "configured per region at deployment" placeholder.
+- New tables: `emotion_records`, `risk_records`, one-to-one with
+  `messages` (unique FK on `message_id`), cascade-deleted with their
+  message. `secondary_emotions` and `matched_terms` are JSONB -- the
+  genuinely variable-shaped fields, consistent with how JSONB was scoped
+  back in the Phase 1 database decision.
+
+**Where:** `app/services/emotion_service.py`, `app/services/safety_service.py`,
+`app/models/{emotion,risk}.py`, `app/database/repositories/{emotion,risk}_repository.py`,
+`app/api/routes/chat.py` (now returns `{reply, emotion, risk}` instead of
+just the message)
+
+**Bug found and fixed during testing:** the first end-to-end test of a
+real crisis-level message ("I dont want to be alive anymore, I just want
+it all to end") did **not** trigger the safety override -- risk came back
+as level 0. Two compounding causes: the keyword list only had the
+apostrophe'd "don't want to be alive," missing the no-apostrophe phrasing
+the test used; and the LLM risk check hit OpenRouter's free-tier rate
+limit and, with the SDK's default retry behavior, spent ~90 seconds
+retrying before giving up and falling back to a keyword-only result that
+itself had the gap above. Fixed by normalizing apostrophes out of both
+input and patterns, adding more phrasings, and cutting the risk-check
+call to `max_retries=0` / 10s timeout so a rate limit resolves in
+seconds, not minutes. Re-tested afterward: same message correctly
+returned `risk_level: 3, method: "combined"` and the fixed safety
+message, in ~22s total.
+
+**Known limitation, stated plainly:** the keyword list is a starting
+point, not exhaustive -- plain substring matching will miss typos,
+indirect language, and non-English input, and the LLM layer is only as
+reliable as OpenRouter's free tier is available. This combination is a
+reasonable first safety net, not a validated crisis-detection system --
+it should be reviewed against real evaluation data (and ideally by
+someone with relevant clinical/safety expertise) before being treated as
+dependable in front of real users.
+
+**Tested end-to-end against the real Neon DB and real OpenRouter API:**
+normal message (correct low emotion/risk), level-2 distress phrase
+(correctly answered by the normal LLM, override not triggered), and the
+crisis-level message (correctly triggers the fixed safety response) --
+all three confirmed after the fix.
