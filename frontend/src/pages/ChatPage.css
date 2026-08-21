@@ -1,0 +1,171 @@
+.chat-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px 16px 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper-raised);
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.chat-back {
+  background: none;
+  border: none;
+  color: var(--ink-meta);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.chat-heading {
+  font-size: 1.2rem;
+  color: var(--ink-primary);
+  margin: 0;
+}
+
+.chat-subtitle {
+  font-size: 0.75rem;
+  color: var(--ink-meta);
+  margin: 0;
+}
+
+.chat-thread {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.chat-bubble {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.chat-bubble-user {
+  align-self: flex-end;
+  background: var(--green-base);
+  color: var(--paper-raised);
+}
+
+.chat-bubble-assistant {
+  align-self: flex-start;
+  background: #ffffff;
+  color: var(--ink-primary);
+  border: 1px solid var(--ink-hairline);
+}
+
+.chat-safety-card {
+  align-self: stretch;
+  background: var(--night-support);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border-left: 4px solid var(--ember-action);
+}
+
+.chat-safety-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ember-heading);
+  margin: 0;
+}
+
+.chat-safety-heading {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: var(--night-text);
+  margin: 8px 0 10px;
+}
+
+.chat-safety-body {
+  color: #a9b8b4;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.chat-signals {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-quiet);
+  margin: 8px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chat-error {
+  color: var(--clay-text);
+  font-size: 0.85rem;
+}
+
+.chat-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-hairline);
+  background: var(--paper-app);
+  color: var(--ink-primary);
+  font-size: 0.95rem;
+  min-width: 0;
+}
+
+.chat-send {
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--green-base);
+  color: var(--paper-raised);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.chat-muted {
+  color: var(--ink-meta);
+  font-size: 0.85rem;
+}
+
+/* Tablet and up: a little more padding, and bubbles don't need to stretch
+   as wide relative to the container since there's more room. */
+@media (min-width: 700px) {
+  .chat-page {
+    padding: 20px 24px 28px;
+  }
+
+  .chat-bubble {
+    max-width: 70%;
+    font-size: 1rem;
+  }
+}
+
+/* Desktop: widen the reading column somewhat and tighten bubble width
+   further so lines stay a comfortable length instead of stretching edge
+   to edge. */
+@media (min-width: 1100px) {
+  .chat-page {
+    max-width: 760px;
+  }
+
+  .chat-bubble {
+    max-width: 60%;
+  }
+}

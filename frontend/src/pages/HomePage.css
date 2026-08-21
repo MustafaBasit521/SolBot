@@ -1,0 +1,129 @@
+.home-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+  background: var(--paper-app);
+  min-height: 100%;
+}
+
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.home-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-meta);
+  margin: 0;
+}
+
+.home-heading {
+  font-size: 1.6rem;
+  color: var(--ink-primary);
+  margin: 4px 0 0;
+}
+
+.home-logout {
+  background: none;
+  border: none;
+  color: var(--ink-meta);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.home-start-button {
+  width: 100%;
+  text-align: left;
+  background: var(--green-base);
+  color: var(--paper-raised);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 28px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-start-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.home-start-subtitle {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.home-section-heading {
+  font-size: 0.95rem;
+  color: var(--ink-secondary);
+  font-family: var(--font-body);
+  margin-bottom: 12px;
+}
+
+.home-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-conversation-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--paper-raised);
+  border: 1px solid var(--ink-hairline);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--ink-primary);
+  text-align: left;
+}
+
+.home-muted {
+  color: var(--ink-meta);
+  font-size: 0.85rem;
+}
+
+/* Tablet and up: more breathing room, and recent conversations move into
+   a two-column grid instead of a single stacked list. */
+@media (min-width: 700px) {
+  .home-page {
+    max-width: 760px;
+    padding: 32px 32px 80px;
+  }
+
+  .home-heading {
+    font-size: 1.8rem;
+  }
+
+  .home-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+/* Desktop: a bit more width, three columns of conversations if there are
+   enough to fill it. */
+@media (min-width: 1100px) {
+  .home-page {
+    max-width: 960px;
+  }
+
+  .home-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

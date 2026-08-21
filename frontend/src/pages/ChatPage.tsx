@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ApiError, listMessages, sendChatMessage } from "../api/client";
 import type { Message } from "../api/types";
+import "./ChatPage.css";
 
 const CRISIS_RISK_THRESHOLD = 3;
 
@@ -73,190 +74,59 @@ export function ChatPage() {
   }
 
   return (
-    <div style={styles.page}>
-      <header style={styles.header}>
-        <button style={styles.backButton} onClick={() => navigate("/")}>
+    <div className="chat-page">
+      <header className="chat-header">
+        <button className="chat-back" onClick={() => navigate("/")}>
           &larr; Home
         </button>
         <div>
-          <h1 style={styles.heading}>Sol</h1>
-          <p style={styles.subtitle}>Supportive conversation · not clinical care</p>
+          <h1 className="chat-heading">Sol</h1>
+          <p className="chat-subtitle">Supportive conversation · not clinical care</p>
         </div>
       </header>
 
-      <div style={styles.thread}>
+      <div className="chat-thread">
         {isLoading && messages.length === 0 && (
-          <p style={styles.muted}>Loading conversation...</p>
+          <p className="chat-muted">Loading conversation...</p>
         )}
         {messages.map((m) =>
           safetyMessageIds.has(m.id) ? (
-            <div key={m.id} style={styles.safetyCard}>
-              <p style={styles.safetyEyebrow}>Support mode</p>
-              <h2 style={styles.safetyHeading}>Let's pause for a moment</h2>
-              <p style={styles.safetyBody}>{m.content}</p>
+            <div key={m.id} className="chat-safety-card">
+              <p className="chat-safety-eyebrow">Support mode</p>
+              <h2 className="chat-safety-heading">Let's pause for a moment</h2>
+              <p className="chat-safety-body">{m.content}</p>
             </div>
           ) : (
             <div
               key={m.id}
-              style={{
-                ...styles.bubble,
-                ...(m.role === "user" ? styles.userBubble : styles.assistantBubble),
-              }}
+              className={`chat-bubble ${
+                m.role === "user" ? "chat-bubble-user" : "chat-bubble-assistant"
+              }`}
             >
               {m.content}
             </div>
           ),
         )}
-        {isSending && <p style={styles.muted}>Sol is thinking...</p>}
+        {isSending && <p className="chat-muted">Sol is thinking...</p>}
         <div ref={bottomRef} />
       </div>
 
-      {lastSignals && <p style={styles.signals}>{lastSignals}</p>}
-      {error && <p style={styles.error}>{error}</p>}
+      {lastSignals && <p className="chat-signals">{lastSignals}</p>}
+      {error && <p className="chat-error">{error}</p>}
 
-      <form onSubmit={handleSend} style={styles.form}>
+      <form onSubmit={handleSend} className="chat-form">
         <input
-          style={styles.input}
+          className="chat-input"
           type="text"
           placeholder="Write what's on your mind"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           disabled={isSending}
         />
-        <button style={styles.sendButton} type="submit" disabled={isSending || !draft.trim()}>
+        <button className="chat-send" type="submit" disabled={isSending || !draft.trim()}>
           Send
         </button>
       </form>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    maxWidth: "min(100%, 640px)",
-    margin: "0 auto",
-    padding: "16px clamp(12px, 4vw, 20px) 24px",
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    background: "var(--paper-raised)",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-    marginBottom: "12px",
-  },
-  backButton: {
-    background: "none",
-    border: "none",
-    color: "var(--ink-meta)",
-    cursor: "pointer",
-    fontSize: "0.9rem",
-  },
-  heading: {
-    fontSize: "1.2rem",
-    color: "var(--ink-primary)",
-    margin: 0,
-  },
-  subtitle: {
-    fontSize: "0.75rem",
-    color: "var(--ink-meta)",
-    margin: 0,
-  },
-  thread: {
-    flex: 1,
-    overflowY: "auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    padding: "8px 0",
-  },
-  bubble: {
-    maxWidth: "80%",
-    padding: "12px 16px",
-    borderRadius: "var(--radius-md)",
-    fontSize: "0.95rem",
-    lineHeight: 1.4,
-    whiteSpace: "pre-wrap",
-  },
-  userBubble: {
-    alignSelf: "flex-end",
-    background: "var(--green-base)",
-    color: "var(--paper-raised)",
-  },
-  assistantBubble: {
-    alignSelf: "flex-start",
-    background: "#ffffff",
-    color: "var(--ink-primary)",
-    border: "1px solid var(--ink-hairline)",
-  },
-  safetyCard: {
-    alignSelf: "stretch",
-    background: "var(--night-support)",
-    borderRadius: "var(--radius-lg)",
-    padding: "20px",
-    borderLeft: "4px solid var(--ember-action)",
-  },
-  safetyEyebrow: {
-    fontFamily: "var(--font-mono)",
-    fontSize: "0.7rem",
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-    color: "var(--ember-heading)",
-    margin: 0,
-  },
-  safetyHeading: {
-    fontFamily: "var(--font-heading)",
-    fontSize: "1.3rem",
-    color: "var(--night-text)",
-    margin: "8px 0 10px",
-  },
-  safetyBody: {
-    color: "#a9b8b4",
-    fontSize: "0.95rem",
-    lineHeight: 1.5,
-    whiteSpace: "pre-wrap",
-    margin: 0,
-  },
-  signals: {
-    fontFamily: "var(--font-mono)",
-    fontSize: "0.7rem",
-    color: "var(--ink-quiet)",
-    margin: "8px 0 0",
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
-  },
-  error: {
-    color: "var(--clay-text)",
-    fontSize: "0.85rem",
-  },
-  form: {
-    display: "flex",
-    gap: "8px",
-    marginTop: "12px",
-  },
-  input: {
-    flex: 1,
-    padding: "12px 14px",
-    borderRadius: "var(--radius-md)",
-    border: "1px solid var(--ink-hairline)",
-    background: "var(--paper-app)",
-    color: "var(--ink-primary)",
-    fontSize: "0.95rem",
-    minWidth: 0,
-  },
-  sendButton: {
-    padding: "12px 20px",
-    borderRadius: "var(--radius-md)",
-    border: "none",
-    background: "var(--green-base)",
-    color: "var(--paper-raised)",
-    cursor: "pointer",
-    flexShrink: 0,
-  },
-  muted: {
-    color: "var(--ink-meta)",
-    fontSize: "0.85rem",
-  },
-};

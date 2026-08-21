@@ -69,10 +69,6 @@
   --radius-lg: 20px;
 
   --shadow-card: 0 1px 3px rgba(27, 35, 32, 0.08), 0 1px 2px rgba(27, 35, 32, 0.05);
-
-  /* Fluid content width: fills narrow screens, caps on wide ones so line
-     length and layout stay readable "equivalently" on any device. */
-  --content-width: min(100%, 480px);
 }
 
 * {

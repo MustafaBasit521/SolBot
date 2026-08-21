@@ -692,3 +692,49 @@ worth actually checking rather than trusting by construction.
 **Not done yet:** the rest of Settings (memory/retention toggles have
 no backend behavior yet since there's no memory system), the
 environmental check-in (deferred), voice (deferred).
+
+---
+
+## 2026-08-21 — Real `@media` breakpoints for the frontend
+
+**What:** Converted the three page components from inline `style={}`
+objects to CSS files with actual `@media` breakpoints, and used those
+breakpoints to change layout, not just scale it.
+
+**Why:** The previous responsive pass used `min()`/`clamp()` inside
+inline styles, which fluidly scales a single layout but can't do
+anything React inline styles fundamentally can't do -- contain a media
+query. The user asked for real media queries, which meant this was a
+genuine gap, not a nice-to-have: inline `style` attributes have no
+mechanism for conditional CSS based on viewport width at all.
+
+**How:**
+- `LoginPage.css`, `HomePage.css`, `ChatPage.css` -- one stylesheet per
+  page, imported directly (Vite handles plain CSS imports out of the
+  box, no CSS-modules setup needed for this). Same design tokens
+  (`var(--green-base)` etc.) as before, just as CSS classes instead of
+  inline objects.
+- Breakpoints at 700px and 1024-1100px (component-specific, not one
+  global set) with actual layout changes, not just size scaling:
+  - **Home**: recent conversations go from a stacked list (mobile) to
+    a 2-column grid (tablet, >=700px) to a 3-column grid (desktop,
+    >=1100px).
+  - **Chat**: bubble `max-width` tightens from 80% (mobile) to 70%
+    (tablet) to 60% (desktop) -- on a wide screen, a bubble that's 80%
+    of the container makes for uncomfortably long lines, so the cap
+    gets stricter as the container gets wider, not looser.
+  - **Login**: card grows from 400px to 440px to 460px max-width with
+    proportionally more padding, since there's genuinely more room to
+    use on larger screens.
+- Removed the now-unused `--content-width` custom property left over
+  from the prior inline-style approach.
+
+**Where:** `frontend/src/pages/{LoginPage,HomePage,ChatPage}.css` (new),
+`frontend/src/pages/{LoginPage,HomePage,ChatPage}.tsx` (switched
+`style` to `className`), `frontend/src/index.css` (cleanup)
+
+**Tested at three real viewport sizes** (375/768/1440px) with a fresh
+signup + 3 conversations created at each size: confirmed Home actually
+renders 1/2/3 columns respectively (not just resized spacing), and Chat
+bubbles are visibly narrower relative to the container at each larger
+breakpoint. Zero console errors.

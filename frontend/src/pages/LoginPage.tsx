@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApiError, registerUser } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import "./LoginPage.css";
 
 export function LoginPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -36,18 +37,18 @@ export function LoginPage() {
   }
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.rule} />
-        <h1 style={styles.heading}>Sol</h1>
-        <p style={styles.subtitle}>
+    <div className="login-page">
+      <div className="login-card">
+        <div className="login-rule" />
+        <h1 className="login-heading">Sol</h1>
+        <p className="login-subtitle">
           {mode === "login" ? "Welcome back." : "A calm place to put words to how you feel."}
         </p>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form onSubmit={handleSubmit} className="login-form">
           {mode === "signup" && (
             <input
-              style={styles.input}
+              className="login-input"
               type="text"
               placeholder="Name (optional)"
               value={displayName}
@@ -55,7 +56,7 @@ export function LoginPage() {
             />
           )}
           <input
-            style={styles.input}
+            className="login-input"
             type="email"
             placeholder="Email"
             value={email}
@@ -63,7 +64,7 @@ export function LoginPage() {
             required
           />
           <input
-            style={styles.input}
+            className="login-input"
             type="password"
             placeholder="Password"
             value={password}
@@ -72,16 +73,16 @@ export function LoginPage() {
             required
           />
 
-          {error && <p style={styles.error}>{error}</p>}
+          {error && <p className="login-error">{error}</p>}
 
-          <button type="submit" style={styles.submitButton} disabled={isSubmitting}>
+          <button type="submit" className="login-submit" disabled={isSubmitting}>
             {isSubmitting ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
           </button>
         </form>
 
         <button
           type="button"
-          style={styles.switchModeButton}
+          className="login-switch"
           onClick={() => {
             setError(null);
             setMode(mode === "login" ? "signup" : "login");
@@ -90,7 +91,7 @@ export function LoginPage() {
           {mode === "login" ? "New here? Create an account" : "Already have an account? Sign in"}
         </button>
 
-        <p style={styles.disclaimer}>
+        <p className="login-disclaimer">
           Sol is not a therapist and does not diagnose. It offers supportive conversation, not
           clinical care.
         </p>
@@ -98,84 +99,3 @@ export function LoginPage() {
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "24px",
-    background: "linear-gradient(180deg, var(--paper-raised), #f1ede4)",
-  },
-  card: {
-    width: "100%",
-    maxWidth: "min(100%, 400px)",
-    background: "var(--paper-raised)",
-    borderRadius: "var(--radius-lg)",
-    boxShadow: "var(--shadow-card)",
-    padding: "clamp(24px, 6vw, 32px) clamp(20px, 5vw, 28px)",
-  },
-  rule: {
-    width: "32px",
-    height: "3px",
-    background: "var(--clay-mark)",
-    borderRadius: "2px",
-    marginBottom: "16px",
-  },
-  heading: {
-    fontSize: "2rem",
-    color: "var(--ink-primary)",
-    marginBottom: "4px",
-  },
-  subtitle: {
-    color: "var(--ink-secondary)",
-    marginTop: 0,
-    marginBottom: "24px",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-  input: {
-    padding: "12px 14px",
-    borderRadius: "var(--radius-md)",
-    border: "1px solid var(--ink-hairline)",
-    background: "var(--paper-app)",
-    color: "var(--ink-primary)",
-    fontSize: "1rem",
-    width: "100%",
-  },
-  error: {
-    color: "var(--clay-text)",
-    fontSize: "0.9rem",
-    margin: 0,
-  },
-  submitButton: {
-    padding: "12px 14px",
-    borderRadius: "var(--radius-md)",
-    border: "none",
-    background: "var(--green-base)",
-    color: "var(--paper-raised)",
-    fontSize: "1rem",
-    cursor: "pointer",
-    marginTop: "4px",
-  },
-  switchModeButton: {
-    background: "none",
-    border: "none",
-    color: "var(--green-base)",
-    marginTop: "16px",
-    cursor: "pointer",
-    fontSize: "0.9rem",
-    padding: 0,
-  },
-  disclaimer: {
-    color: "var(--ink-meta)",
-    fontSize: "0.75rem",
-    marginTop: "24px",
-    marginBottom: 0,
-    textAlign: "center",
-  },
-};

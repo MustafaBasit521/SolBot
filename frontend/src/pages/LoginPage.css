@@ -1,0 +1,113 @@
+.login-page {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(180deg, var(--paper-raised), #f1ede4);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--paper-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 24px 20px;
+}
+
+.login-rule {
+  width: 32px;
+  height: 3px;
+  background: var(--clay-mark);
+  border-radius: 2px;
+  margin-bottom: 16px;
+}
+
+.login-heading {
+  font-size: 2rem;
+  color: var(--ink-primary);
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  color: var(--ink-secondary);
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-input {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-hairline);
+  background: var(--paper-app);
+  color: var(--ink-primary);
+  font-size: 1rem;
+  width: 100%;
+}
+
+.login-error {
+  color: var(--clay-text);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.login-submit {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--green-base);
+  color: var(--paper-raised);
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.login-switch {
+  background: none;
+  border: none;
+  color: var(--green-base);
+  margin-top: 16px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.login-disclaimer {
+  color: var(--ink-meta);
+  font-size: 0.75rem;
+  margin-top: 24px;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+/* Tablet and up: a little more breathing room and slightly larger type. */
+@media (min-width: 600px) {
+  .login-card {
+    max-width: 440px;
+    padding: 32px 28px;
+  }
+
+  .login-heading {
+    font-size: 2.25rem;
+  }
+
+  .login-input,
+  .login-submit {
+    font-size: 1.05rem;
+  }
+}
+
+/* Desktop: card sits a little larger still, since there's ample room. */
+@media (min-width: 1024px) {
+  .login-card {
+    max-width: 460px;
+    padding: 40px 36px;
+  }
+}
