@@ -2,7 +2,7 @@ import logging
 
 from fastapi import FastAPI
 
-from app.api.routes import health
+from app.api.routes import conversations, health, messages, users
 from app.core.config import settings
 
 logging.basicConfig(
@@ -13,3 +13,6 @@ logging.basicConfig(
 app = FastAPI(title=settings.app_name)
 
 app.include_router(health.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
+app.include_router(conversations.router, prefix="/api")
+app.include_router(messages.router, prefix="/api")
