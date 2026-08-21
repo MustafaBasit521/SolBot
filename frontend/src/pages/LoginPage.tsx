@@ -38,6 +38,7 @@ export function LoginPage() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
+        <div style={styles.rule} />
         <h1 style={styles.heading}>Sol</h1>
         <p style={styles.subtitle}>
           {mode === "login" ? "Welcome back." : "A calm place to put words to how you feel."}
@@ -105,21 +106,30 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "center",
     padding: "24px",
+    background: "linear-gradient(180deg, var(--paper-raised), #f1ede4)",
   },
   card: {
     width: "100%",
-    maxWidth: 380,
-    background: "var(--color-surface)",
+    maxWidth: "min(100%, 400px)",
+    background: "var(--paper-raised)",
     borderRadius: "var(--radius-lg)",
     boxShadow: "var(--shadow-card)",
-    padding: "32px 28px",
+    padding: "clamp(24px, 6vw, 32px) clamp(20px, 5vw, 28px)",
+  },
+  rule: {
+    width: "32px",
+    height: "3px",
+    background: "var(--clay-mark)",
+    borderRadius: "2px",
+    marginBottom: "16px",
   },
   heading: {
     fontSize: "2rem",
+    color: "var(--ink-primary)",
     marginBottom: "4px",
   },
   subtitle: {
-    color: "var(--color-text-muted)",
+    color: "var(--ink-secondary)",
     marginTop: 0,
     marginBottom: "24px",
   },
@@ -131,12 +141,14 @@ const styles: Record<string, React.CSSProperties> = {
   input: {
     padding: "12px 14px",
     borderRadius: "var(--radius-md)",
-    border: "1px solid var(--color-border)",
+    border: "1px solid var(--ink-hairline)",
+    background: "var(--paper-app)",
+    color: "var(--ink-primary)",
     fontSize: "1rem",
-    fontFamily: "inherit",
+    width: "100%",
   },
   error: {
-    color: "#b3432b",
+    color: "var(--clay-text)",
     fontSize: "0.9rem",
     margin: 0,
   },
@@ -144,8 +156,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "12px 14px",
     borderRadius: "var(--radius-md)",
     border: "none",
-    background: "var(--color-primary)",
-    color: "var(--color-primary-contrast)",
+    background: "var(--green-base)",
+    color: "var(--paper-raised)",
     fontSize: "1rem",
     cursor: "pointer",
     marginTop: "4px",
@@ -153,14 +165,14 @@ const styles: Record<string, React.CSSProperties> = {
   switchModeButton: {
     background: "none",
     border: "none",
-    color: "var(--color-primary)",
+    color: "var(--green-base)",
     marginTop: "16px",
     cursor: "pointer",
     fontSize: "0.9rem",
     padding: 0,
   },
   disclaimer: {
-    color: "var(--color-text-muted)",
+    color: "var(--ink-meta)",
     fontSize: "0.75rem",
     marginTop: "24px",
     marginBottom: 0,

@@ -505,3 +505,127 @@ taken at each step; zero console errors.
 dedicated crisis-override screen styling -- risk-3 replies currently
 render as a normal assistant bubble rather than the design's distinct
 dark safety screen), the eco-anxiety "in development" placeholder.
+
+---
+
+## 2026-08-21 — Applied the color_structures.md design system + responsive pass
+
+**What:** Replaced the frontend's improvised color tokens with the exact
+palette from `color_structures.md` (a design system doc the user wrote:
+hue-as-meaning ramps, accessibility-checked pairings, per-screen color
+assignments, and explicit rules), applied it to all three existing
+screens, built the dedicated Safety/support card styling this system
+was clearly designed for, and verified responsiveness across mobile/
+tablet/desktop viewports.
+
+**Why:** The doc is a real, specific design system (not just "make it
+look nice") -- it assigns exact hex values per screen, defines
+accessibility-checked text/background pairings, and states explicit
+rules (ember is safety-only, no red/green mood verdicts, research
+metadata stays ink-grey and monospaced, max 2-3 accent hues per
+screen). Following it precisely matters more than my own earlier
+color guesses.
+
+**How:**
+- `index.css` rewritten with every ramp as a named CSS custom property
+  (`--paper-*`, `--ink-*`, `--green-*`, `--clay-*`, `--moss-*`,
+  `--night-*`, `--signal-*`, `--ember-*`, `--data-*`), matching the
+  doc's own naming so the mapping from doc to code is traceable.
+- `LoginPage` -> "01 Welcome": paper-raised gradient surface, ink-primary
+  heading, ink-secondary body, a small clay-mark accent rule under the
+  heading, green-base primary button.
+- `HomePage` -> "03 Home": paper-app surface, green-base chat tile.
+  (Eco card / mood-active / trend-point colors from the doc aren't
+  applied yet since those UI elements -- environmental check-in, mood
+  picker, trend chart -- don't exist yet.)
+- `ChatPage` -> "04 Text chat": paper-raised surface, white AI bubble,
+  green-base person bubble (the doc's per-screen color for the user's
+  own outgoing bubble, distinct from the green="assistant" meaning
+  higher up -- it's a UI convention for "your own message," not a
+  contradiction). The signals line is now `font-mono` + `ink-quiet`,
+  per the doc's explicit rule that research metadata must stay
+  ink-grey and monospaced, never colored.
+- **New**: a dedicated Safety/support card ("10 Safety / support" in
+  the doc) for risk-level-3 replies -- night-support dark background,
+  ember-action left border, ember-heading eyebrow label ("SUPPORT
+  MODE"), night-text heading, and the doc's specific safety-body color
+  (#A9B8B4). This closes the gap flagged in the last entry ("risk-3
+  replies currently render as a normal assistant bubble").
+  **Known limitation, stated in a code comment**: this flag is
+  client-side session state, set only when a chat response arrives.
+  Reloading an older conversation won't show a past safety reply with
+  this styling, because `GET /messages` doesn't yet return risk data
+  per message -- only the just-received turn is known to be safety-
+  flagged. Fixing that properly means joining risk data into the
+  message list endpoint, which is a separate backend task.
+- Responsiveness: switched fixed pixel container widths to
+  `min(100%, Npx)` and `clamp()` padding so layouts fill narrow screens
+  and cap at a readable width on wide ones, and fixed a flexbox
+  overflow gotcha (`min-width: 0` on the chat input, since flex items
+  default to `min-width: auto` and can overflow their container).
+
+**Where:** `frontend/src/index.css`,
+`frontend/src/pages/{LoginPage,HomePage,ChatPage}.tsx`
+
+**Tested in a real browser at three viewport sizes** (375x800 mobile,
+768x1024 tablet, 1440x900 desktop), each running its own full signup ->
+home -> new chat -> crisis message flow: confirmed the Safety card
+renders correctly and distinctly from a normal bubble at every size,
+layouts stay centered and readable with no overflow or breakage, and
+zero console errors across all nine screenshots.
+
+**Not done yet:** eco/moss (environmental thread), voice/night screen,
+check-in data-hue screens, settings, about -- none of those screens
+exist yet, so their assigned colors from the doc aren't applied
+anywhere yet either.
+
+---
+
+## 2026-08-21 — Welcome email on signup
+
+**What:** A best-effort welcome email sent via Gmail SMTP when a new
+account is created.
+
+**Why:** Requested as a signup nicety -- confirms the account exists
+and gives a first, on-brand touchpoint.
+
+**How:**
+- Originally asked for "Node mailer" -- corrected to `smtplib`
+  (Python's built-in email library) since Nodemailer is Node.js-only
+  and our backend is Python.
+- Tried `fastapi-mail` first; its install pulled a `starlette` version
+  incompatible with our pinned FastAPI, breaking the backend's
+  environment. Removed it and went with `smtplib` directly instead --
+  zero new dependencies, so this exact class of conflict can't recur.
+  Real incident, not hypothetical: while cleaning up the broken install,
+  a stray command (missing the `cd`+`venv activate` prefix, since shell
+  state doesn't persist between separate tool calls) accidentally hit
+  the user's unrelated general-purpose venv instead of the project's,
+  uninstalling a `starlette` version that an unrelated `streamlit`
+  project of theirs depended on. Caught via `pip check`, fixed by
+  reinstalling the exact original pinned version; `streamlit` confirmed
+  importable again afterward.
+- `app/services/email_service.py` -- `send_welcome_email()` never
+  raises; missing SMTP config logs a warning and no-ops, a send failure
+  logs and swallows the exception. Account creation must never depend
+  on email delivery succeeding.
+- Wired into `POST /api/users` via FastAPI's `BackgroundTasks`, so the
+  email is sent after the response goes out -- signup latency isn't
+  affected by SMTP round-trip time.
+- Config: `SMTP_HOST`/`PORT`/`USERNAME`/`PASSWORD`/`MAIL_FROM`, all with
+  safe empty-string defaults so the app still boots without them
+  configured (unlike `DATABASE_URL`, which is genuinely required).
+
+**Where:** `app/services/email_service.py`, `app/api/routes/users.py`,
+`app/core/config.py`
+
+**Tested:** called `send_welcome_email` directly against the real Gmail
+account (app password, not the real Gmail password) -- completed with
+no warnings or exceptions logged, consistent with a successful send.
+Confirmed the backend's own venv (`fastapi`, `starlette`, `pydantic`,
+etc.) matches `requirements.txt` exactly after the cleanup.
+
+**Not done yet:** email verification gating (currently signup succeeds
+regardless of whether the email arrives -- there's no "confirm your
+email before logging in" flow, which wasn't asked for and would be a
+separate, bigger feature if wanted later).

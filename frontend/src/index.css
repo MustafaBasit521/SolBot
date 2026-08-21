@@ -1,27 +1,78 @@
 :root {
-  --color-bg: #f2eee6;
-  --color-surface: #ffffff;
-  --color-text: #2a2a28;
-  --color-text-muted: #6b6b64;
-  --color-border: #e3ddd0;
+  /* Paper -- surfaces */
+  --paper-raised: #fbf9f6;
+  --paper-app: #f7f4ef;
+  --paper-sunken: #efebe3;
+  --paper-selected: #edeae2;
+  --paper-canvas: #e9e4da;
 
-  --color-primary: #2f4f46;
-  --color-primary-hover: #253f38;
-  --color-primary-contrast: #ffffff;
+  /* Ink -- text */
+  --ink-primary: #1b2320;
+  --ink-secondary: #59635f;
+  --ink-meta: #8a938f;
+  --ink-quiet: #a5ada8;
+  --ink-hairline: rgba(27, 35, 32, 0.1);
 
-  --color-accent: #e2895c;
-  --color-accent-contrast: #ffffff;
+  /* Assistant green */
+  --green-pressed: #24453f;
+  --green-base: #2f5d57;
+  --green-on-tint: #3f6862;
+  --green-tint: #e4eeeb;
+  --green-wash: #e9f0ee;
 
-  --color-danger-bg: #1e2622;
-  --color-danger-accent: #e2895c;
+  /* Clay -- the person */
+  --clay-text: #8e4f2e;
+  --clay-base: #b5673f;
+  --clay-mark: #c1743f;
+  --clay-tint: #f7e9e0;
+  --clay-wash: #fbf3ee;
+
+  /* Moss -- environmental thread */
+  --moss-text: #2e3a26;
+  --moss-on-tint: #4c6339;
+  --moss-base: #5b7346;
+  --moss-tint: #e9eee2;
+  --moss-wash: #f3f5ee;
+
+  /* Night -- voice + support only */
+  --night-deep: #101817;
+  --night-base: #16201f;
+  --night-support: #1e2a2e;
+  --night-text: #f4f1ec;
+  --night-secondary: #c3cfcc;
+  --night-meta: #7e938d;
+
+  /* Signal -- voice states, on night */
+  --signal-listening: #7fb3a6;
+  --signal-processing: #d9b475;
+  --signal-speaking: #c1743f;
+  --signal-label: #b7ccc5;
+
+  /* Ember -- safety only, never decorative */
+  --ember-action: #d98b5f;
+  --ember-heading: #e9b491;
+  --ember-body: #dcc0ad;
+  --ember-emphasis: #f6dfd0;
+
+  /* Data */
+  --data-mood: #2f5d57;
+  --data-stress: #a9762b;
+  --data-stress-bar: #c49a54;
+  --data-energy: #b5673f;
+  --data-social: #6a5f8c;
 
   --font-heading: Georgia, "Times New Roman", serif;
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   --radius-md: 12px;
   --radius-lg: 20px;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 1px 3px rgba(27, 35, 32, 0.08), 0 1px 2px rgba(27, 35, 32, 0.05);
+
+  /* Fluid content width: fills narrow screens, caps on wide ones so line
+     length and layout stay readable "equivalently" on any device. */
+  --content-width: min(100%, 480px);
 }
 
 * {
@@ -37,8 +88,8 @@ body,
 body {
   margin: 0;
   font-family: var(--font-body);
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--paper-app);
+  color: var(--ink-primary);
 }
 
 h1,
@@ -55,4 +106,8 @@ button {
 
 a {
   color: inherit;
+}
+
+input {
+  font-family: inherit;
 }
