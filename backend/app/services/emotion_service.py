@@ -2,11 +2,13 @@ from dataclasses import dataclass
 
 from transformers import pipeline
 
-_MODEL_NAME = "j-hartmann/emotion-english-distilroberta-base"
+# GoEmotions taxonomy (27 categories + neutral) instead of the basic 7 Ekman
+# emotions -- categories like "nervousness", "disappointment", "grief", and
+# "remorse" map much more directly onto mental-wellbeing language than
+# "sadness"/"fear"/"anger" alone.
+_MODEL_NAME = "SamLowe/roberta-base-go_emotions"
 
-# Loaded once per process on first use, not per-request -- this is a ~66M
-# parameter model, small enough to keep resident in memory for the life
-# of the app instead of reloading it on every message.
+# Loaded once per process on first use, not per-request.
 _classifier = None
 
 
@@ -20,7 +22,16 @@ class EmotionResult:
 def _get_classifier():
     global _classifier
     if _classifier is None:
-        _classifier = pipeline("text-classification", model=_MODEL_NAME, top_k=None)
+        # GoEmotions is multi-label (a message can be both "disappointment"
+        # and "nervousness" at once) -- sigmoid gives independent per-label
+        # probabilities, unlike softmax, which would force them to sum to 1
+        # as if only one emotion could be true.
+        _classifier = pipeline(
+            "text-classification",
+            model=_MODEL_NAME,
+            top_k=None,
+            function_to_apply="sigmoid",
+        )
     return _classifier
 
 

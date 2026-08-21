@@ -331,3 +331,52 @@ retrying rather than failing fast); the risk-check call already fails
 fast by design (previous batch). Worth watching if this becomes a
 recurring UX problem -- the fix would be adding a paid OpenRouter key or
 switching models, not a code change.
+
+---
+
+## 2026-08-21 — Swapped emotion classifier to GoEmotions
+
+**What:** Replaced the 7-Ekman-emotion classifier
+(`j-hartmann/emotion-english-distilroberta-base`) with a GoEmotions-based
+one (`SamLowe/roberta-base-go_emotions`, 27 categories + neutral).
+
+**Why:** The basic Ekman set (anger, disgust, fear, joy, neutral, sadness,
+surprise) was too coarse for mental-wellbeing language -- everything
+sad-adjacent just came back as "sadness" at ~97% confidence regardless of
+whether it was disappointment, grief, or something else. GoEmotions
+categories (disappointment, nervousness, remorse, grief, annoyance,
+embarrassment, etc.) map much more directly onto what people actually say
+in this domain, and give the strategy engine more to work with than two
+label checks.
+
+**How:**
+- GoEmotions is multi-label (a message can genuinely be both
+  "disappointment" and "nervousness" at once), so the pipeline is
+  configured with `function_to_apply="sigmoid"` instead of the default
+  softmax -- softmax would force all label probabilities to sum to 1, as
+  if only one emotion could ever be true, which is the wrong model for
+  this taxonomy.
+- No DB schema change needed -- `emotion_records.primary_emotion` is a
+  plain string column, not constrained to a fixed enum.
+- Expanded `strategy_service.py`'s emotion-matching from two hardcoded
+  checks (`== "fear"`, `== "sadness"`) to small sets:
+  `{fear, nervousness}` -> grounding, `{sadness, disappointment, grief}`
+  -> behavioral activation, `{remorse, embarrassment}` -> self-compassion
+  (in addition to the existing keyword-based self-critical check).
+
+**Where:** `app/services/emotion_service.py` (model name + sigmoid),
+`app/services/strategy_service.py` (emotion sets)
+
+**Tested end-to-end after the swap:** "I have an exam tomorrow and I feel
+like I am failing at everything" now correctly comes back as
+`disappointment (0.75)` with `sadness (0.23)` as secondary -- a much more
+precise read than the old model's generic `sadness (0.97)` -- and still
+correctly drives `[emotional_validation, cognitive_reframing,
+task_breakdown]`. The fear/grounding path was re-verified unchanged
+(`fear 0.90` -> `[emotional_validation, grounding]`).
+
+**Same caveat as before:** this is still a starting choice, not a
+validated taxonomy decision -- worth comparing against alternatives once
+there's real evaluation data, per the briefing's own model-selection
+principle (don't default to the first option without comparing
+accuracy/size/speed/suitability).

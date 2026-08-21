@@ -48,23 +48,35 @@ _SELF_CRITICAL_PATTERN = re.compile(
 )
 
 
+# GoEmotions categories that call for a grounding pause vs. a gentle nudge
+# toward one small action -- broader than just "fear"/"sadness" now that the
+# classifier gives finer-grained labels.
+_GROUNDING_EMOTIONS = {"fear", "nervousness"}
+_ACTIVATION_EMOTIONS = {"sadness", "disappointment", "grief"}
+_SELF_COMPASSION_EMOTIONS = {"remorse", "embarrassment"}
+
+
 def select_strategies(*, primary_emotion: str, risk_level: int, text: str) -> list[str]:
     """Rule-based strategy selection. Deliberately simple and inspectable --
     a starting point to be replaced or extended once there's real evaluation
     data on which strategies actually help, not a claim of clinical rigor."""
     selected = ["emotional_validation"]
 
-    if _SELF_CRITICAL_PATTERN.search(text):
+    if _SELF_CRITICAL_PATTERN.search(text) or primary_emotion in _SELF_COMPASSION_EMOTIONS:
         selected.append("self_compassion")
     elif _DISTORTION_PATTERN.search(text):
         selected.append("cognitive_reframing")
 
-    if _ACADEMIC_PATTERN.search(text) and risk_level < 2:
+    if _ACADEMIC_PATTERN.search(text) and risk_level < 2 and len(selected) < 3:
         selected.append("task_breakdown")
 
-    if primary_emotion == "fear":
+    if primary_emotion in _GROUNDING_EMOTIONS and len(selected) < 3:
         selected.append("grounding")
-    elif primary_emotion == "sadness" and risk_level < 2 and len(selected) < 3:
+    elif (
+        primary_emotion in _ACTIVATION_EMOTIONS
+        and risk_level < 2
+        and len(selected) < 3
+    ):
         selected.append("behavioral_activation")
 
     # Cap it so the LLM gets focused guidance, not a checklist.
