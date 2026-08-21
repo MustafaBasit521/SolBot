@@ -439,3 +439,69 @@ login works.
 JWT with no revocation list is a reasonable MVP tradeoff, not a final
 security posture), rate limiting on login (no lockout after repeated
 failed attempts yet).
+
+---
+
+## 2026-08-21 — Frontend scaffold: auth + home + chat
+
+**What:** A Vite + React + TypeScript frontend (`frontend/`) with a
+login/signup screen, a home screen (start chat / recent conversations),
+and the chat screen -- the first slice of the UI wired to the real
+backend, not mocked data.
+
+**Why:** The backend had a working, tested API with no way to actually
+use it as an end user. This proves the whole stack end-to-end in a real
+browser, not just via curl.
+
+**How:**
+- Chose React/TS over the briefing's "simple frontend for MVP" note --
+  the actual designs are a genuine multi-screen SPA (bottom nav, chat,
+  voice, check-in, patterns, settings) with real client state, which
+  doesn't fit a static-page approach anymore now that there's a real
+  auth+chat API behind it.
+- Plain CSS with custom properties (`index.css`) for design tokens
+  (cream background, dark teal primary, coral accent, serif headings)
+  instead of a UI framework -- the design is custom enough that a
+  component library wouldn't save much and would fight the look.
+- `src/api/client.ts` -- typed fetch wrapper, stores the JWT in
+  `localStorage`, attaches `Authorization: Bearer` automatically, throws
+  a typed `ApiError` with the backend's `detail` message on failure.
+- `src/auth/AuthContext.tsx` + `ProtectedRoute` -- loads the current
+  user from a stored token on app start, redirects to `/login` if
+  there isn't one or it's invalid.
+- Three screens: `LoginPage` (combined login/signup toggle -- full
+  parity with the design's separate 2-step consent screen is a later
+  pass), `HomePage` (start chat, recent conversations list),
+  `ChatPage` (message thread, optimistic user-message display, shows
+  the detected emotion/risk/strategies as a small signals line -- a
+  rough stand-in for the design's "Session context" panel).
+
+**Where:** `frontend/src/api/`, `frontend/src/auth/`,
+`frontend/src/pages/`, `frontend/src/components/ProtectedRoute.tsx`
+
+**Bug found and fixed while testing in a real browser (Playwright,
+`chromium-cli` wasn't available so used Playwright directly):** signup
+silently failed on first attempt -- the backend had **no CORS
+middleware**, so the browser's preflight `OPTIONS /api/users` request
+got a 405 and the real `POST` never fired. This didn't show up in any
+of our earlier curl-based testing because curl doesn't send CORS
+preflight requests -- only real browsers do. Added `CORSMiddleware` to
+`main.py` with an env-configurable `CORS_ORIGINS` list. Also fixed a
+smaller cosmetic bug found in the same pass: the chat screen's "Loading
+conversation..." label could linger next to an already-rendered message
+if the user sent a message before the initial history fetch resolved.
+
+**Tested end-to-end in a real headless browser against the live
+backend + Neon DB + OpenRouter:** signed up, logged in, landed on Home,
+started a new chat, sent a real message, and watched the actual reply
+render with the correct emotion/risk/strategy signals shown
+(`disappointment · risk level 1 · emotional_validation,
+cognitive_reframing, task_breakdown`) -- confirming the whole pipeline
+from browser to LLM and back with no mocking anywhere. Screenshots
+taken at each step; zero console errors.
+
+**Not done yet:** matching the actual design screens pixel-for-pixel
+(bottom nav, voice screen, check-in, patterns/insights, settings, the
+dedicated crisis-override screen styling -- risk-3 replies currently
+render as a normal assistant bubble rather than the design's distinct
+dark safety screen), the eco-anxiety "in development" placeholder.
