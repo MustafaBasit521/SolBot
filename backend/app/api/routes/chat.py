@@ -11,9 +11,10 @@ from app.database.repositories import (
     emotion_repository,
     message_repository,
     risk_repository,
+    strategy_repository,
 )
 from app.schemas.chat import ChatEmotionOut, ChatRequest, ChatResponse, ChatRiskOut
-from app.services import safety_service
+from app.services import safety_service, strategy_service
 from app.services.emotion_service import classify_emotion
 from app.services.llm_service import generate_reply
 
@@ -60,15 +61,27 @@ def chat(conversation_id: uuid.UUID, payload: ChatRequest, db: Session = Depends
         rationale=risk.rationale,
     )
 
+    strategies: list[str] = []
+
     if risk.risk_level >= _CRISIS_RISK_THRESHOLD:
         reply_text = safety_service.SAFETY_OVERRIDE_MESSAGE
     else:
+        strategies = strategy_service.select_strategies(
+            primary_emotion=emotion.primary_emotion,
+            risk_level=risk.risk_level,
+            text=payload.content,
+        )
+        strategy_repository.create_strategy_record(
+            db, message_id=user_message.id, strategies=strategies
+        )
+        guidance = strategy_service.build_guidance_text(strategies)
+
         history = message_repository.list_messages_for_conversation(
             db, conversation_id, limit=20
         )
         llm_messages = [{"role": m.role, "content": m.content} for m in history]
         try:
-            reply_text = generate_reply(llm_messages)
+            reply_text = generate_reply(llm_messages, strategy_guidance=guidance)
         except (APIError, ValueError):
             logger.exception("LLM call failed for conversation %s", conversation_id)
             raise HTTPException(
@@ -90,4 +103,5 @@ def chat(conversation_id: uuid.UUID, payload: ChatRequest, db: Session = Depends
         risk=ChatRiskOut(
             risk_level=risk.risk_level, method=risk.method, rationale=risk.rationale
         ),
+        strategies=strategies,
     )

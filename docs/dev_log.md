@@ -255,3 +255,79 @@ normal message (correct low emotion/risk), level-2 distress phrase
 (correctly answered by the normal LLM, override not triggered), and the
 crisis-level message (correctly triggers the fixed safety response) --
 all three confirmed after the fix.
+
+---
+
+## 2026-08-21 — Psychological strategy engine
+
+**What:** A rule-based layer that picks 1-3 supportive strategies (from a
+fixed catalog: emotional validation, cognitive reframing, self-compassion,
+task breakdown, grounding, behavioral activation) based on the message's
+emotion, risk level, and a few lightweight keyword/context signals, then
+hands that as soft guidance into the LLM's reply -- the LLM still writes
+the actual response, it's just steered rather than left to guess.
+
+**Why:** This is the "Psychology Strategy Engine" stage from the original
+briefing's architecture (Emotion + Context + Risk -> Strategy Engine ->
+Response Generation). Before this, the LLM only had a generic system
+prompt with no explicit psychological reasoning behind what it said.
+
+**How:**
+- `app/services/strategy_service.py` -- `STRATEGIES` dict (name -> one
+  line of guidance text), regex-based signal detection (academic/deadline
+  keywords, all-or-nothing language, self-critical phrasing), and
+  `select_strategies()` combining emotion + risk + those signals into an
+  ordered, capped list (`emotional_validation` always included as the
+  baseline, at most 2 more).
+- `llm_service.generate_reply()` now takes an optional `strategy_guidance`
+  string, inserted as a second system-role message alongside (not
+  replacing) the main persona/safety system prompt.
+- New `strategy_records` table, same one-per-message pattern as emotion
+  and risk (unique FK on `message_id`, cascade delete). Only created for
+  non-crisis messages -- a risk-3 message gets the fixed safety response
+  instead, so there's no discretionary strategy to record for it.
+- `ChatResponse` now also returns `strategies: list[str]` so the selected
+  strategies are visible in the API response, not just implicit in the
+  reply's tone.
+
+**Where:** `app/services/strategy_service.py`, `app/models/strategy.py`,
+`app/database/repositories/strategy_repository.py`,
+`app/services/llm_service.py` (added parameter),
+`app/api/routes/chat.py` (wiring)
+
+**Two more regex bugs found and fixed during testing** (same family as
+the risk-keyword bug from the previous batch -- pattern matching is
+fragile and testing kept catching real gaps, which is exactly why we
+test before calling something done):
+1. The self-critical pattern only matched contractions ("I'm such a
+   failure"), not the spelled-out form ("I am such a failure") -- so the
+   test message fell through to the weaker cognitive-reframing branch
+   instead of self-compassion.
+2. After first patching that, it *still* didn't match -- the pattern's
+   alternation had a structural bug: `(such a|so) (stupid|...|a failure)`
+   requires literal text like "such a a failure" (double "a"), which
+   never occurs naturally. Restructured into three separate
+   alternatives ("such a X", "so X", "a failure" standalone) instead of
+   one combined template.
+- Verified after fixing: "I have an exam tomorrow and I am such a
+  failure, I always mess everything up" now correctly selects
+  `[emotional_validation, self_compassion, task_breakdown]`, and a
+  fear-coded message ("my heart is racing... something terrible is about
+  to happen") correctly selects `[emotional_validation, grounding]` and
+  the reply naturally opens with a grounding pause.
+
+**Known limitation, stated plainly:** same caveat as the risk keyword
+list -- this is a hand-written, inspectable starting point, not a
+validated set of psychological rules. It should be revisited once there's
+real evaluation data on which strategies actually help, per the
+briefing's own emphasis on not overclaiming clinical rigor.
+
+**Operational note (not a bug, just reality):** OpenRouter's free tier
+for `openai/gpt-oss-20b:free` is a shared pool and gets rate-limited
+under load -- during testing, the main conversational reply call
+occasionally took 20-30+ seconds due to the provider's retry-after
+backoff. This only affects the main reply (which still benefits from
+retrying rather than failing fast); the risk-check call already fails
+fast by design (previous batch). Worth watching if this becomes a
+recurring UX problem -- the fix would be adding a paid OpenRouter key or
+switching models, not a code change.

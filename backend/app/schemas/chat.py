@@ -23,3 +23,4 @@ class ChatResponse(BaseModel):
     reply: MessageOut
     emotion: ChatEmotionOut
     risk: ChatRiskOut
+    strategies: list[str]
