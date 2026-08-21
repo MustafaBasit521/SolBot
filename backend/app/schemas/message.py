@@ -18,3 +18,7 @@ class MessageOut(BaseModel):
     role: str
     content: str
     created_at: datetime
+    # Only set for user messages that have a risk assessment -- lets the
+    # frontend render the safety-card styling on reload, not just for the
+    # turn that was just received.
+    risk_level: int | None = None

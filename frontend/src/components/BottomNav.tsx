@@ -5,6 +5,7 @@ const ITEMS = [
   { path: "/", label: "Home" },
   { path: "/check-in", label: "Check-in" },
   { path: "/patterns", label: "Patterns" },
+  { path: "/settings", label: "Settings" },
 ];
 
 export function BottomNav() {

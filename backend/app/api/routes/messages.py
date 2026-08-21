@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_owned_conversation
 from app.database.connection import get_db
-from app.database.repositories import message_repository
+from app.database.repositories import message_repository, risk_repository
 from app.models.conversation import Conversation
 from app.schemas.message import MessageCreate, MessageOut
 
@@ -31,4 +31,9 @@ def list_messages(
     limit: int = Query(default=20, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
-    return message_repository.list_messages_for_conversation(db, conversation.id, limit=limit)
+    messages = message_repository.list_messages_for_conversation(db, conversation.id, limit=limit)
+    risk_levels = risk_repository.get_risk_levels_for_messages(db, [m.id for m in messages])
+    return [
+        MessageOut.model_validate(m).model_copy(update={"risk_level": risk_levels.get(m.id)})
+        for m in messages
+    ]

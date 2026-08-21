@@ -19,6 +19,8 @@ export interface Message {
   role: "user" | "assistant";
   content: string;
   created_at: string;
+  // Only present on user messages that were risk-assessed.
+  risk_level: number | null;
 }
 
 export interface ChatEmotion {

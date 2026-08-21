@@ -27,10 +27,10 @@ export function ChatPage() {
   // signals line (mobile/tablet) and the richer session-context panel
   // (desktop). One source of truth instead of duplicating fields.
   const [lastResult, setLastResult] = useState<ChatResponse | null>(null);
-  // Only messages received during this session can be flagged here -- the
-  // history endpoint doesn't yet return risk data for older messages, so a
-  // safety reply from a previous session renders as a normal bubble on
-  // reload. Noted as a known gap, not silently pretended away.
+  // Populated both from the just-received turn (below) and, on load, from
+  // the history endpoint's per-message risk_level -- a safety reply now
+  // renders correctly even after a reload, not just within the session it
+  // occurred in.
   const [safetyMessageIds, setSafetyMessageIds] = useState<Set<string>>(new Set());
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +38,22 @@ export function ChatPage() {
     if (!conversationId) return;
     setLastResult(null);
     listMessages(conversationId)
-      .then(setMessages)
+      .then((msgs) => {
+        setMessages(msgs);
+        // A risk-assessed user message sits immediately before the fixed
+        // safety-override reply it triggered -- flag that following
+        // assistant message, not the user message carrying the score.
+        const flagged = new Set<string>();
+        msgs.forEach((m, i) => {
+          const next = msgs[i + 1];
+          if (m.risk_level != null && m.risk_level >= CRISIS_RISK_THRESHOLD && next) {
+            flagged.add(next.id);
+          }
+        });
+        if (flagged.size > 0) {
+          setSafetyMessageIds((prev) => new Set([...prev, ...flagged]));
+        }
+      })
       .catch(() => setError("Couldn't load this conversation."))
       .finally(() => setIsLoading(false));
   }, [conversationId]);
@@ -71,6 +86,7 @@ export function ChatPage() {
       role: "user",
       content,
       created_at: new Date().toISOString(),
+      risk_level: null,
     };
     setMessages((prev) => [...prev, optimisticUserMessage]);
 
@@ -116,6 +132,9 @@ export function ChatPage() {
         </ul>
         <button className="chat-sidebar-link" onClick={() => navigate("/patterns")}>
           Your patterns
+        </button>
+        <button className="chat-sidebar-link" onClick={() => navigate("/settings")}>
+          Settings
         </button>
       </aside>
 

@@ -856,3 +856,67 @@ Signals panel showed real tag chips (`DISAPPOINTMENT`, `SADNESS`,
 `ANNOYANCE`) matching the actual emotion classification for the
 message sent during the test. Zero console errors across all three
 sizes.
+
+---
+
+## 2026-08-22 — Settings screen, safety-card reload fix, consent gate
+
+**What:** Three items from the running gap list, done together: a real
+Settings screen (export/delete), fixing the safety card so it survives
+a reload instead of only showing within the session it occurred in,
+and a proper 2-step consent screen gating first access to the app.
+
+**Why:** These were the three highest-value remaining gaps that didn't
+require new deferred features (voice, memory, eco-anxiety) to build on
+top of.
+
+**Safety-card reload fix (backend + frontend):**
+- `MessageOut` gained an optional `risk_level` field. `GET
+  /conversations/{id}/messages` now fetches risk levels for the
+  returned messages (`risk_repository.get_risk_levels_for_messages`, a
+  batched `WHERE message_id IN (...)` query) and attaches them via
+  `model_copy(update=...)` -- risk records exist only on **user**
+  messages, so the frontend flags the **following** assistant message
+  (the one immediately after a risk>=3 user message) as the safety
+  card, not the message carrying the score itself.
+- `ChatPage`'s history-load effect now derives `safetyMessageIds` from
+  this data in addition to the current session's just-received turn.
+- **Verified with an actual reload**, not just code review: sent a
+  crisis message, confirmed the safety card rendered, reloaded the
+  page, confirmed it was still there -- this was the specific gap
+  called out in an earlier dev log entry, now closed.
+
+**Settings screen** (`SettingsPage`): wires up backend endpoints that
+already existed but had no UI --
+`GET /users/me/export` (triggers a real browser file download via a
+Blob + object URL, not a fake button), `DELETE /conversations/{id}`
+(per-row delete in an "Erase" section), `DELETE /users/me` (account
+deletion, confirmed via `window.confirm`, logs out and redirects on
+success). Destructive actions styled in clay per the design's
+"clay strictly for destructive rows" rule. No links to About/research
+since that page doesn't exist -- a dead link is worse than none.
+
+**Consent screen** (`ConsentPage`): the actual 2-step "Before we begin"
+screen from the design (what gets processed / voice is optional / you
+stay in control), checkbox-gated Continue button. Acceptance is
+tracked per-user in `localStorage` (`lib/consent.ts`) -- `ProtectedRoute`
+redirects to `/consent` if the current user hasn't accepted yet, and a
+separate `RequireAuth` guard (auth-only, no consent check) covers the
+consent route itself so it can't redirect to itself in a loop.
+
+**Process note, not a feature, but important:** while fixing a type
+error, discovered that `npx tsc --noEmit` (used for "clean compile"
+checks in every prior frontend batch this session) was resolving to
+the **root** `tsconfig.json`, which has `"files": []` and only project
+references -- meaning it likely wasn't actually type-checking app code
+this whole time. Re-ran the entire codebase with the correct command
+(`npm run build`, which is `tsc -b && vite build`) after fixing the one
+real error this surfaced; nothing else was hiding. Using `npm run
+build` for all future verification instead of ad-hoc `tsc` calls.
+
+**Tested end-to-end against the live backend, all in one Playwright
+run:** signup correctly lands on `/consent` (not Home), Continue stays
+disabled until the checkbox is checked, reloading after accepting skips
+consent, a crisis message's safety card survives a full page reload,
+data export triggers a real file download, and conversation delete
+works with the correct confirmation message. Zero console errors.

@@ -103,6 +103,18 @@ export function listMessages(conversationId: string): Promise<Message[]> {
   return request<Message[]>(`/conversations/${conversationId}/messages`);
 }
 
+export function deleteConversation(conversationId: string): Promise<void> {
+  return request<void>(`/conversations/${conversationId}`, { method: "DELETE" });
+}
+
+export function deleteAccount(): Promise<void> {
+  return request<void>("/users/me", { method: "DELETE" });
+}
+
+export function exportMyData(): Promise<unknown> {
+  return request<unknown>("/users/me/export");
+}
+
 export function sendChatMessage(conversationId: string, content: string): Promise<ChatResponse> {
   return request<ChatResponse>(`/conversations/${conversationId}/chat`, {
     method: "POST",

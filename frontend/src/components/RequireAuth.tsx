@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { hasAcceptedConsent } from "../lib/consent";
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+// Like ProtectedRoute, but without the consent check -- used for the
+// consent screen itself, which would otherwise redirect to itself forever.
+export function RequireAuth({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -12,10 +13,6 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
-  }
-
-  if (!hasAcceptedConsent(user.id)) {
-    return <Navigate to="/consent" replace />;
   }
 
   return <>{children}</>;

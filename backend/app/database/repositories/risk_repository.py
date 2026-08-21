@@ -1,5 +1,6 @@
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.risk import RiskRecord
@@ -25,3 +26,14 @@ def create_risk_record(
     db.commit()
     db.refresh(record)
     return record
+
+
+def get_risk_levels_for_messages(
+    db: Session, message_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, int]:
+    if not message_ids:
+        return {}
+    stmt = select(RiskRecord.message_id, RiskRecord.risk_level).where(
+        RiskRecord.message_id.in_(message_ids)
+    )
+    return dict(db.execute(stmt).all())

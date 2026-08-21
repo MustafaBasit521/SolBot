@@ -269,12 +269,15 @@
 }
 
 .chat-sidebar-link {
+  display: block;
   background: none;
   border: none;
   color: var(--green-base);
   font-size: 0.85rem;
   cursor: pointer;
   padding: 0;
+  margin-top: 10px;
+  text-align: left;
 }
 
 .chat-context-title {

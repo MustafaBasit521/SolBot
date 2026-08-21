@@ -1,11 +1,14 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { RequireAuth } from "./components/RequireAuth";
 import { LoginPage } from "./pages/LoginPage";
+import { ConsentPage } from "./pages/ConsentPage";
 import { HomePage } from "./pages/HomePage";
 import { ChatPage } from "./pages/ChatPage";
 import { CheckInPage } from "./pages/CheckInPage";
 import { PatternsPage } from "./pages/PatternsPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 export default function App() {
   return (
@@ -13,6 +16,14 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/consent"
+            element={
+              <RequireAuth>
+                <ConsentPage />
+              </RequireAuth>
+            }
+          />
           <Route
             path="/"
             element={
@@ -42,6 +53,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <PatternsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
               </ProtectedRoute>
             }
           />
