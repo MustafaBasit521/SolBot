@@ -115,6 +115,18 @@ export function HomePage() {
             <button className="home-action home-action-outline" onClick={() => navigate("/check-in")}>
               <span className="home-action-title">Full check-in</span>
             </button>
+            <button className="home-action home-action-outline" onClick={() => navigate("/journal")}>
+              <span className="home-action-title">Journal</span>
+            </button>
+            <button className="home-action home-action-outline" onClick={() => navigate("/exercises")}>
+              <span className="home-action-title">Guided exercises</span>
+            </button>
+            <button className="home-action home-action-outline" onClick={() => navigate("/goals")}>
+              <span className="home-action-title">Goals</span>
+            </button>
+            <button className="home-action home-action-outline" onClick={() => navigate("/articles")}>
+              <span className="home-action-title">Learn</span>
+            </button>
           </div>
         </div>
 

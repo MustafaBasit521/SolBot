@@ -63,3 +63,30 @@ export interface EmotionalTheme {
   label: string;
   count: number;
 }
+
+export interface JournalEntry {
+  id: string;
+  user_id: string;
+  title: string | null;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Goal {
+  id: string;
+  title: string;
+  is_active: boolean;
+  created_at: string;
+  // ISO date strings (YYYY-MM-DD) for the last 14 days the goal was
+  // marked done -- used to render both "done today" and a streak strip.
+  completed_dates: string[];
+}
+
+export interface GroundingSession {
+  id: string;
+  pre_intensity: number;
+  post_intensity: number | null;
+  completed: boolean;
+  created_at: string;
+}

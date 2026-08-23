@@ -8,8 +8,11 @@ from app.api.routes import (
     chat,
     check_ins,
     conversations,
+    goals,
+    grounding,
     health,
     insights,
+    journal,
     messages,
     users,
 )
@@ -38,3 +41,6 @@ app.include_router(messages.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
 app.include_router(check_ins.router, prefix="/api")
 app.include_router(insights.router, prefix="/api")
+app.include_router(journal.router, prefix="/api")
+app.include_router(goals.router, prefix="/api")
+app.include_router(grounding.router, prefix="/api")

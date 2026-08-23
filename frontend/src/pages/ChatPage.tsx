@@ -9,6 +9,7 @@ import {
 } from "../api/client";
 import type { ChatResponse, Conversation, Message } from "../api/types";
 import { BottomNav } from "../components/BottomNav";
+import { GroundingSOS } from "../components/GroundingSOS";
 import "./ChatPage.css";
 
 const CRISIS_RISK_THRESHOLD = 3;
@@ -32,6 +33,10 @@ export function ChatPage() {
   // renders correctly even after a reload, not just within the session it
   // occurred in.
   const [safetyMessageIds, setSafetyMessageIds] = useState<Set<string>>(new Set());
+  // Only set for a message that was JUST sent in this session -- never
+  // re-derived from history on load, since the grounding overlay is a
+  // live, in-the-moment intervention, not something to replay on reload.
+  const [showGrounding, setShowGrounding] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -95,6 +100,7 @@ export function ChatPage() {
       setMessages((prev) => [...prev, result.reply]);
       if (result.risk.risk_level >= CRISIS_RISK_THRESHOLD) {
         setSafetyMessageIds((prev) => new Set(prev).add(result.reply.id));
+        setShowGrounding(true);
       }
       setLastResult(result);
     } catch (err) {
@@ -259,6 +265,8 @@ export function ChatPage() {
           <p className="chat-context-note">This feature is still in development.</p>
         </div>
       </aside>
+
+      {showGrounding && <GroundingSOS onClose={() => setShowGrounding(false)} />}
     </div>
   );
 }

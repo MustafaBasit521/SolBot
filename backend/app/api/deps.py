@@ -7,8 +7,17 @@ from sqlalchemy.orm import Session
 
 from app.core.security import decode_access_token
 from app.database.connection import get_db
-from app.database.repositories import conversation_repository, user_repository
+from app.database.repositories import (
+    conversation_repository,
+    goal_repository,
+    grounding_repository,
+    journal_repository,
+    user_repository,
+)
 from app.models.conversation import Conversation
+from app.models.goal import Goal
+from app.models.grounding_session import GroundingSession
+from app.models.journal_entry import JournalEntry
 from app.models.user import User
 
 _bearer_scheme = HTTPBearer()
@@ -50,3 +59,40 @@ def get_owned_conversation(
             status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found"
         )
     return conversation
+
+
+def get_owned_journal_entry(
+    entry_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> JournalEntry:
+    entry = journal_repository.get_entry(db, entry_id)
+    if not entry or entry.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Journal entry not found"
+        )
+    return entry
+
+
+def get_owned_goal(
+    goal_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Goal:
+    goal = goal_repository.get_goal(db, goal_id)
+    if not goal or goal.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Goal not found")
+    return goal
+
+
+def get_owned_grounding_session(
+    session_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> GroundingSession:
+    session = grounding_repository.get_session(db, session_id)
+    if not session or session.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Grounding session not found"
+        )
+    return session

@@ -3,6 +3,9 @@ import type {
   ChatResponse,
   Conversation,
   EmotionalTheme,
+  Goal,
+  GroundingSession,
+  JournalEntry,
   Message,
   MoodTrendPoint,
   User,
@@ -147,4 +150,65 @@ export function getMoodTrend(days = 14): Promise<MoodTrendPoint[]> {
 
 export function getEmotionalThemes(days = 14, limit = 6): Promise<EmotionalTheme[]> {
   return request<EmotionalTheme[]>(`/insights/emotional-themes?days=${days}&limit=${limit}`);
+}
+
+export interface JournalEntryInput {
+  title: string | null;
+  content: string;
+}
+
+export function listJournalEntries(): Promise<JournalEntry[]> {
+  return request<JournalEntry[]>("/journal");
+}
+
+export function createJournalEntry(payload: JournalEntryInput): Promise<JournalEntry> {
+  return request<JournalEntry>("/journal", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function updateJournalEntry(
+  id: string,
+  payload: JournalEntryInput,
+): Promise<JournalEntry> {
+  return request<JournalEntry>(`/journal/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteJournalEntry(id: string): Promise<void> {
+  return request<void>(`/journal/${id}`, { method: "DELETE" });
+}
+
+export function listGoals(): Promise<Goal[]> {
+  return request<Goal[]>("/goals");
+}
+
+export function createGoal(title: string): Promise<Goal> {
+  return request<Goal>("/goals", { method: "POST", body: JSON.stringify({ title }) });
+}
+
+export function toggleGoalToday(id: string): Promise<{ done_today: boolean }> {
+  return request<{ done_today: boolean }>(`/goals/${id}/toggle`, { method: "POST" });
+}
+
+export function deleteGoal(id: string): Promise<void> {
+  return request<void>(`/goals/${id}`, { method: "DELETE" });
+}
+
+export function createGroundingSession(preIntensity: number): Promise<GroundingSession> {
+  return request<GroundingSession>("/grounding-sessions", {
+    method: "POST",
+    body: JSON.stringify({ pre_intensity: preIntensity }),
+  });
+}
+
+export function completeGroundingSession(
+  id: string,
+  postIntensity: number | null,
+  completed: boolean,
+): Promise<GroundingSession> {
+  return request<GroundingSession>(`/grounding-sessions/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ post_intensity: postIntensity, completed }),
+  });
 }

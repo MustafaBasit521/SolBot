@@ -95,6 +95,10 @@ export function LoginPage() {
           Sol is not a therapist and does not diagnose. It offers supportive conversation, not
           clinical care.
         </p>
+
+        <button className="login-crisis-link" onClick={() => navigate("/crisis-help")}>
+          In crisis right now? Get help
+        </button>
       </div>
     </div>
   );

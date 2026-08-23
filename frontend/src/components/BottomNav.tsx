@@ -4,6 +4,7 @@ import "./BottomNav.css";
 const ITEMS = [
   { path: "/", label: "Home" },
   { path: "/check-in", label: "Check-in" },
+  { path: "/journal", label: "Journal" },
   { path: "/patterns", label: "Patterns" },
   { path: "/settings", label: "Settings" },
 ];
@@ -28,6 +29,11 @@ export function BottomNav() {
           </button>
         ))}
       </div>
+      {/* Always present, regardless of which tab is active -- not gated
+          behind risk detection, per the "always visible" requirement. */}
+      <button className="bottom-nav-help" onClick={() => navigate("/crisis-help")}>
+        Get help
+      </button>
       <span className="bottom-nav-badge">Research prototype</span>
     </nav>
   );

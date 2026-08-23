@@ -1101,3 +1101,169 @@ four pages -- confirmed via screenshots that the top nav and content
 now span close to the full width with no stranded-narrow-column
 effect, then re-verified mobile (375px) was completely unaffected by
 these changes. Zero console errors.
+
+---
+
+## 2026-08-24 — Journaling, guided exercises, always-visible crisis page
+
+**What:** Audited the user's 10-item feature list against what's built;
+built the three required items that were missing (of the 6 marked
+required -- mood tracking, privacy/settings, and onboarding/consent
+were already done): journaling, a static guided-exercises library, and
+a permanent "Get Help Now" crisis page. Left the 4 optional items
+(progress summary -- already effectively covered by Patterns,
+psychoeducation library, goal/habit tracker, trusted-contact
+quick-access) for a future batch rather than assuming scope.
+
+**Journaling** (`journal_entries` table + full CRUD):
+- Deliberately **not** run through the emotion/risk/strategy pipeline
+  at all -- no classification, no LLM involvement, pure private
+  storage. This matches the spec's explicit framing ("private,
+  reflective space, separate from chat") and the actual therapeutic
+  value of CBT journaling, which depends on the space feeling
+  unmonitored. Worth being explicit about as a tradeoff: a genuinely
+  concerning entry written here would not be flagged the way the same
+  words in chat would be.
+- Backend: standard model/migration/repository/schema/routes pattern,
+  with a new `get_owned_journal_entry` dependency mirroring
+  `get_owned_conversation`.
+- Frontend: built as a real master-detail layout from the start (list
+  + editor side by side at `>=900px`, two toggled screens on mobile)
+  rather than making the narrow-single-column mistake again.
+
+**Guided exercises library** (`lib/exercisesContent.ts`, no backend):
+- Explicitly static, hand-written content -- box breathing, 4-7-8
+  breathing, 5-4-3-2-1 grounding, physical grounding, a CBT thought
+  record, and a cognitive-distortions checklist. No model in the loop
+  at all for this content, per the spec's own safety reasoning (avoids
+  any hallucination risk for exercise instructions).
+
+**Crisis Help page** (`/crisis-help`):
+- The one genuinely new architectural piece: this route is **public**,
+  reachable with no login (added a link on the login screen itself),
+  unlike every other route which requires auth. A permanent "Get help"
+  pill was added directly into `BottomNav` -- always present regardless
+  of which tab is active, not gated behind risk detection like the
+  in-chat safety card.
+- **Blocked on real data, not guessed:** the user's spec named specific
+  helplines (Umang/Rozan) but I don't have verified current phone
+  numbers for them, and the project's own standing rule is to never
+  hallucinate crisis resources. Built with the same honest placeholder
+  pattern already used elsewhere (`"[ Crisis line numbers not yet
+  configured -- awaiting verified regional numbers ]"`) rather than
+  guessing at real numbers.
+
+**A real bug found and fixed along the way:** adding a 5th bottom-nav
+item (Journal) plus the new "Get help" pill caused real overflow on a
+375px phone -- confirmed via actual `scrollWidth` vs container-width
+measurements (58px of content had nowhere to go, meaning "Settings"
+was effectively unreachable, not just visually tight). Fixed by
+tightening item padding/font-size on mobile specifically (desktop kept
+more comfortable sizing) and adding a `mask-image` fade on the
+scrollable nav strip as a safety net for any remaining overflow on
+very narrow devices -- re-measured afterward: overflow dropped from
+58px to 6px, and the earlier full checks (drive17) had shown a "0
+entries" result for journal saves that also turned out to be test-
+script timing, not real bugs, verified by dumping actual DOM state and
+network responses rather than assuming either way.
+
+**Where:** `backend/app/models/journal_entry.py` (+ repository, schema,
+route, `deps.py` addition), `frontend/src/pages/{JournalPage,
+ExercisesPage,CrisisHelpPage}.tsx` + `.css` (all new),
+`frontend/src/lib/exercisesContent.ts` (new),
+`frontend/src/components/BottomNav.{tsx,css}` (Journal item, Get-help
+pill, mobile overflow fix), `frontend/src/pages/{HomePage,
+LoginPage}.tsx` (new action buttons / crisis link), `App.tsx` (new
+routes, one public)
+
+**Tested end-to-end at both 375px and 1920px:** crisis-help reachable
+both pre-login and from the nav; journal create/list verified via
+actual network responses and DOM state (not assumed); exercises expand
+correctly; nav overflow fix re-measured. Zero console errors across
+the whole pass.
+
+**Still open:** the 4 optional items from the list (progress summary,
+psychoeducation library, goal/habit tracker, trusted contact), and the
+real Umang/Rozan phone numbers for the crisis page.
+
+## 2026-08-24 — Psychoeducation library, goal tracker, and an in-chat crisis "Grounding SOS"
+
+Picked up 2 of the 4 remaining optional items (psychoeducation library,
+goal/habit tracker) plus a genuinely new idea in place of the third
+(trusted-contact quick-access): an interactive intervention that
+auto-triggers at the moment a chat message crosses the crisis risk
+threshold, instead of only showing the existing static safety card.
+
+**Psychoeducation library** (`/articles`, frontend-only):
+- Same static/hand-written pattern as the exercises library --
+  `lib/articlesContent.ts`, no model in the loop. Five short articles:
+  what anxiety is, how CBT thinking works, low mood vs. depression,
+  what Sol is/isn't, and an eco-anxiety article (directly tied to the
+  still-placeholder Environmental check-in feature).
+- Master-detail layout (list + reader, same responsive pattern as
+  Journal) rather than a single long scroll.
+
+**Goal-setting / habit tracker** (`/goals`, full stack):
+- New `Goal` + `GoalCompletion` tables (`goal_repository.py`,
+  migration `f0c73a3b5be9`). A completion is a row per (goal_id, date)
+  rather than a counter, so a 14-day streak strip can be read straight
+  back out without any derived state.
+- `POST /goals/{id}/toggle` flips *today's* completion idempotently
+  (add or remove the row for today) -- the frontend does an optimistic
+  update and reverts on failure.
+- Framed deliberately as low-pressure: subtitle reads "missing a day
+  doesn't reset anything," no streak-breaking language anywhere.
+
+**Grounding SOS** (`components/GroundingSOS.tsx`, full stack) -- built
+in place of trusted-contact quick-access, after discussing the design
+with the user first:
+- Auto-opens as a full-screen overlay the moment a *live* chat message
+  (not a replayed history one) crosses the existing crisis risk
+  threshold (`risk_level >= 3`), alongside -- not instead of -- the
+  safety card already in the thread.
+- Three steps: a 0-10 self-rated intensity slider, a 4-7-8 breathing
+  animation (3 rounds, ~57s, evidence-based for down-regulating acute
+  arousal), then the same slider again afterward.
+- **Deliberately does not simulate reading the user's actual pulse or
+  heart rate.** There's no sensor (no camera/mic access), so a fake
+  biometric readout would be dishonest at exactly the moment honesty
+  matters most. The "pulse comes down" is the user's own before/after
+  self-rating next to a calming visual -- a real, evidence-based effect
+  of paced breathing, honestly labeled as self-reported rather than
+  measured. Confirmed this framing with the user before building it.
+- A "Skip breathing" and a persistent "I need help now" link to
+  `/crisis-help` are present on every step -- the exercise is never a
+  gate in front of real help.
+- Backend logging (`GroundingSession` table, `POST`/`PATCH
+  /grounding-sessions`) records pre/post intensity and whether the
+  user completed or bailed, for later research analysis -- but a
+  failed log call never blocks the exercise itself from working.
+
+**A real bug caught before it shipped:** the breathing circle's first
+CSS approach grew *outward* on inhale (`scale: 1.4`), which visually
+overlapped the "Round X of 3" label and the "Skip to the end" button
+above/below it -- confirmed via a screenshot, not just reading the
+CSS. Fixed by inverting the animation to shrink *inward* on exhale
+(scale 1.0 -> 0.72) instead of growing outward on inhale, so the
+circle never exceeds its own box. Re-screenshotted at both the
+inhale and exhale extremes on both viewports to confirm no overlap
+either direction.
+
+**Where:** `backend/app/models/{goal,grounding_session}.py` (+
+repositories, schemas, routes, `deps.py` additions), migration
+`f0c73a3b5be9`, `frontend/src/pages/{GoalsPage,ArticlesPage}.tsx` +
+`.css` (new), `frontend/src/lib/articlesContent.ts` (new),
+`frontend/src/components/GroundingSOS.tsx` + `.css` (new), wired into
+`ChatPage.tsx` off the existing `risk_level` check, `HomePage.tsx`
+(Goals/Learn buttons), `App.tsx` (new routes).
+
+**Tested end-to-end at 375px and 1920px:** goal create/toggle/delete
+against the real Neon DB, article reading, and the full grounding flow
+(intensity -> breathing -> reflect -> back to chat with the safety
+card still intact) triggered by an actual crisis-worded message sent
+through the real chat pipeline -- 32/32 automated checks passed, zero
+console errors, plus visual screenshot confirmation of the breathing
+animation fix. All test accounts deleted from Neon afterward.
+
+**Still open:** the real Umang/Rozan phone numbers for the crisis
+page (still a placeholder, by design -- not guessed).

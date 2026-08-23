@@ -19,16 +19,43 @@
   display: flex;
   justify-content: space-around;
   flex: 1;
+  overflow-x: auto;
+  /* If items don't all fit on a narrow phone, fade the trailing edge so
+     the cut-off content reads as "scroll for more" instead of just
+     disappearing with no indication anything else exists. */
+  mask-image: linear-gradient(to right, black calc(100% - 16px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 16px), transparent 100%);
+}
+
+.bottom-nav-help {
+  background: var(--clay-wash);
+  color: var(--clay-text);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 2px;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.bottom-nav-help:hover {
+  background: var(--clay-tint);
 }
 
 .bottom-nav-item {
   background: none;
   border: none;
   color: var(--ink-meta);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   cursor: pointer;
-  padding: 6px 12px;
+  padding: 6px 8px;
   border-radius: var(--radius-md);
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: color 0.15s ease, background 0.15s ease;
 }
 
@@ -88,5 +115,17 @@
     justify-content: flex-start;
     gap: 8px;
     flex: 1;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .bottom-nav-item {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+
+  .bottom-nav-help {
+    font-size: 0.75rem;
+    padding: 6px 14px;
   }
 }

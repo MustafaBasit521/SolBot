@@ -10,12 +10,21 @@ import { CheckInPage } from "./pages/CheckInPage";
 import { PatternsPage } from "./pages/PatternsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { EnvironmentalPage } from "./pages/EnvironmentalPage";
+import { JournalPage } from "./pages/JournalPage";
+import { ExercisesPage } from "./pages/ExercisesPage";
+import { CrisisHelpPage } from "./pages/CrisisHelpPage";
+import { ArticlesPage } from "./pages/ArticlesPage";
+import { GoalsPage } from "./pages/GoalsPage";
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public: reachable whether or not the user is signed in, since
+              this is meant to be always accessible, not gated behind auth. */}
+          <Route path="/crisis-help" element={<CrisisHelpPage />} />
+
           <Route path="/login" element={<LoginPage />} />
           <Route
             path="/consent"
@@ -70,6 +79,38 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <EnvironmentalPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/journal"
+            element={
+              <ProtectedRoute>
+                <JournalPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/exercises"
+            element={
+              <ProtectedRoute>
+                <ExercisesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/articles"
+            element={
+              <ProtectedRoute>
+                <ArticlesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/goals"
+            element={
+              <ProtectedRoute>
+                <GoalsPage />
               </ProtectedRoute>
             }
           />

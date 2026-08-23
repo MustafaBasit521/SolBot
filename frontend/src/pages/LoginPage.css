@@ -87,6 +87,20 @@
   text-align: center;
 }
 
+.login-crisis-link {
+  display: block;
+  width: 100%;
+  background: var(--clay-wash);
+  color: var(--clay-text);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
 /* Tablet and up: a little more breathing room and slightly larger type. */
 @media (min-width: 600px) {
   .login-card {
