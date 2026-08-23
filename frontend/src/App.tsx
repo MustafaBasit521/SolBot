@@ -9,6 +9,7 @@ import { ChatPage } from "./pages/ChatPage";
 import { CheckInPage } from "./pages/CheckInPage";
 import { PatternsPage } from "./pages/PatternsPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { EnvironmentalPage } from "./pages/EnvironmentalPage";
 
 export default function App() {
   return (
@@ -61,6 +62,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/environmental"
+            element={
+              <ProtectedRoute>
+                <EnvironmentalPage />
               </ProtectedRoute>
             }
           />

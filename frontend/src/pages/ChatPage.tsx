@@ -183,6 +183,20 @@ export function ChatPage() {
         )}
         {error && <p className="chat-error">{error}</p>}
 
+        <div className="chat-suggestions">
+          {["How am I feeling?", "I'm not sure where to start", "I'm not okay"].map((s) => (
+            <button
+              key={s}
+              type="button"
+              className="chat-suggestion-chip"
+              onClick={() => setDraft(s)}
+              disabled={isSending}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
         <form onSubmit={handleSend} className="chat-form">
           <input
             className="chat-input"

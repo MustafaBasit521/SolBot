@@ -122,6 +122,25 @@
   font-size: 0.85rem;
 }
 
+.chat-suggestions {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 0 0;
+}
+
+.chat-suggestion-chip {
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 1px solid var(--ink-hairline);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .chat-form {
   display: flex;
   gap: 8px;

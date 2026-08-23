@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { createCheckIn, type CheckInInput } from "../api/client";
 import {
   ENERGY_WORDS,
@@ -40,7 +41,15 @@ const DEFAULTS: CheckInInput = {
 };
 
 export function CheckInPage() {
-  const [values, setValues] = useState<CheckInInput>(DEFAULTS);
+  const [searchParams] = useSearchParams();
+  const moodParam = searchParams.get("mood");
+  const presetMood = moodParam !== null ? Number(moodParam) : NaN;
+  const initialValues =
+    Number.isFinite(presetMood) && presetMood >= 0 && presetMood <= 100
+      ? { ...DEFAULTS, mood: presetMood }
+      : DEFAULTS;
+
+  const [values, setValues] = useState<CheckInInput>(initialValues);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 

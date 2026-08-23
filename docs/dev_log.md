@@ -920,3 +920,66 @@ disabled until the checkbox is checked, reloading after accepting skips
 consent, a crisis message's safety card survives a full page reload,
 data export triggers a real file download, and conversation delete
 works with the correct confirmation message. Zero console errors.
+
+---
+
+## 2026-08-22 — Home page enrichment, environmental placeholder, chat chips
+
+**What:** Closed the gap between Home and the design references (which
+show a much richer Home than what existed: quick mood picker, 3 action
+buttons, mini mood trend, themes, environmental card, reminder card),
+finally built the environmental check-in as an actual placeholder page
+(promised at the very start of the project, never actually built as a
+page until now), and added quick-reply suggestion chips to Chat.
+
+**Why:** The user shared the full design set again and asked for the
+UI to match it. Home was the single biggest, most-repeated gap across
+every reference image.
+
+**How:**
+- **Home** rewritten with: a 5-button quick mood picker (Low/Heavy/
+  Steady/Light/Good); a disabled-styled "Start voice chat" button
+  ("Coming soon" -- honest about the deferred feature rather than
+  hiding the gap); a `Sparkline` component (new, single-line, reused
+  for Home's compact mood trend -- Patterns' own two-line mood+stress
+  chart was left untouched since it already worked and didn't need
+  the abstraction); themes tags and environmental card, all pulling
+  from the same `getMoodTrend`/`getEmotionalThemes` endpoints already
+  built for Patterns. Layout splits into main/side columns at
+  `>=900px`, stacks on mobile.
+- **Quick mood -> Check-in flow**: tapping a quick mood does **not**
+  silently submit a check-in with fabricated values for the other 4
+  dimensions (mood/stress/energy/social/overall are all
+  non-nullable in the DB) -- it navigates to `/check-in?mood=70` and
+  `CheckInPage` reads that query param to pre-fill just the mood
+  slider, leaving the rest at neutral defaults for the user to
+  actually set themselves.
+- **Environmental placeholder** (`EnvironmentalPage`): a calm,
+  moss-colored "still in development" card, linked from Home's
+  environmental card. This is the "in development" page promised
+  during the very first conversation about scoping the eco-anxiety
+  feature out -- it existed only as a stubbed sidebar card in Chat
+  until now, never as an actual reachable page.
+- **Chat quick-reply chips**: "How am I feeling?" / "I'm not sure
+  where to start" / "I'm not okay" -- fill the input on click rather
+  than auto-sending, so the user can edit before sending. Dropped the
+  design's "I'd rather talk about the planet" chip since it implies
+  the eco-anxiety feature exists.
+
+**Where:** `frontend/src/pages/HomePage.tsx` + `.css` (rewritten),
+`frontend/src/pages/EnvironmentalPage.tsx` + `.css` (new),
+`frontend/src/components/Sparkline.tsx` (new),
+`frontend/src/pages/CheckInPage.tsx` (query-param mood preset),
+`frontend/src/pages/ChatPage.tsx` + `.css` (suggestion chips),
+`frontend/src/App.tsx` (new `/environmental` route)
+
+**Tested end-to-end against the live backend at both mobile and
+desktop widths:** quick-mood tap correctly lands on `/check-in?mood=70`
+with the mood slider pre-set to 70 (checked the actual input value,
+not just that navigation happened); environmental card correctly
+routes to the new placeholder; chat chip correctly fills the input
+field with its exact text. Separately verified with a user that had
+real check-ins and a real chat message that Home's Mood trend sparkline
+and Themes tags render actual data (a rising 30->75 line, a real
+`disappointment` tag) rather than only checking the empty states.
+Zero console errors across all screenshots.
