@@ -67,56 +67,62 @@ export function SettingsPage() {
 
       {status && <p className="settings-status">{status}</p>}
 
-      <p className="settings-section-label">Privacy &amp; data</p>
-      <div className="settings-group">
-        <div className="settings-row">
-          <span className="settings-row-label">Privacy note</span>
-          <span className="settings-row-action">
-            Your conversations are used to run Sol's emotion, risk, and support features. They
-            are not sold or shared with third parties.
-          </span>
-        </div>
-        <div className="settings-row">
-          <span className="settings-row-label">Download my data</span>
-          <button className="settings-row-action" onClick={handleDownloadData}>
-            Export
-          </button>
-        </div>
-      </div>
+      <div className="settings-grid">
+        <div className="settings-col">
+          <p className="settings-section-label">Privacy &amp; data</p>
+          <div className="settings-group">
+            <div className="settings-row">
+              <span className="settings-row-label">Privacy note</span>
+              <span className="settings-row-action">
+                Your conversations are used to run Sol's emotion, risk, and support features.
+                They are not sold or shared with third parties.
+              </span>
+            </div>
+            <div className="settings-row">
+              <span className="settings-row-label">Download my data</span>
+              <button className="settings-row-action" onClick={handleDownloadData}>
+                Export
+              </button>
+            </div>
+          </div>
 
-      <p className="settings-section-label">Erase</p>
-      <div className="settings-group">
-        {isLoading && <p className="settings-empty">Loading conversations...</p>}
-        {!isLoading && conversations.length === 0 && (
-          <p className="settings-empty">No conversations to delete yet.</p>
-        )}
-        {!isLoading && conversations.length > 0 && (
-          <ul className="settings-conversation-list">
-            {conversations.map((c) => (
-              <li className="settings-conversation-row" key={c.id}>
-                <span>{c.title ?? "Untitled conversation"}</span>
-                <button
-                  className="settings-row-action destructive"
-                  onClick={() => handleDeleteConversation(c.id)}
-                >
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="settings-group">
-        <div className="settings-row">
-          <span className="settings-row-label">Delete account and all my data</span>
-          <button className="settings-row-action destructive" onClick={handleDeleteAccount}>
-            Delete
-          </button>
+          <div className="settings-group">
+            <div className="settings-row">
+              <span className="settings-row-label">Delete account and all my data</span>
+              <button className="settings-row-action destructive" onClick={handleDeleteAccount}>
+                Delete
+              </button>
+            </div>
+            <p className="settings-danger-note">
+              Removes your conversations, check-ins, and account permanently.
+            </p>
+          </div>
         </div>
-        <p className="settings-danger-note">
-          Removes your conversations, check-ins, and account permanently.
-        </p>
+
+        <div className="settings-col">
+          <p className="settings-section-label">Erase a conversation</p>
+          <div className="settings-group">
+            {isLoading && <p className="settings-empty">Loading conversations...</p>}
+            {!isLoading && conversations.length === 0 && (
+              <p className="settings-empty">No conversations to delete yet.</p>
+            )}
+            {!isLoading && conversations.length > 0 && (
+              <ul className="settings-conversation-list">
+                {conversations.map((c) => (
+                  <li className="settings-conversation-row" key={c.id}>
+                    <span>{c.title ?? "Untitled conversation"}</span>
+                    <button
+                      className="settings-row-action destructive"
+                      onClick={() => handleDeleteConversation(c.id)}
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
 
       <BottomNav />

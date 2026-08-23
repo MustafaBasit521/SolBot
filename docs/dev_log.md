@@ -1052,3 +1052,52 @@ Patterns, Settings, and Chat:** nav position/contents verified via
 actual `boundingClientRect`/`isVisible()` checks (not just screenshots)
 at both sizes; confirmed Chat's separate desktop sidebar/nav-hiding
 behavior is unaffected. Zero console errors across the whole pass.
+
+---
+
+## 2026-08-24 — Fixed pages floating as narrow islands on real desktop widths
+
+**What:** Settings, Check-in, Patterns, and Home widened and
+restructured so they actually use a real desktop monitor's width,
+instead of a fixed-pixel column centered with large empty gutters on
+either side.
+
+**Why:** User feedback (checked against my own earlier screenshots, and
+they were right): Settings in particular was capped at 760px with no
+further increase at any breakpoint, meaning roughly 700px+ of empty
+space split across both sides on a 1440-1920px screen. That's a real
+layout defect, not a style preference -- a page that looks like a
+narrow strip floating in a sea of background reads as broken/unfinished
+regardless of how the strip itself is styled.
+
+**How:**
+- **Settings restructured into two real columns** at desktop (privacy/
+  data + delete-account on the left, per-conversation erase on the
+  right) instead of one narrow stacked list -- content reorganized to
+  use the width, not just stretched wider.
+- **Check-in** goes to 3 columns at desktop (was capped at 2, with a
+  max-width that stopped increasing past 1100px).
+- **Patterns'** chart card also gets visually larger (taller SVG) at
+  the widest breakpoint, so the reclaimed width goes toward making the
+  focal chart more prominent, not just wider whitespace inside the
+  same card.
+- **All four pages switched from fixed pixel `max-width` caps to
+  `max-width: min(92vw, 1700px)`** -- scales with the actual viewport
+  instead of hard-stopping at a number picked for a specific screen
+  size. First pass used bigger fixed numbers (1200-1400px) and was
+  still visibly narrow at a real 1920px width when checked; the
+  viewport-relative version is what actually closed the gap.
+- Added hover states across the newly-touched interactive elements
+  (settings rows, conversation rows, check-in submit, patterns range
+  buttons) while in there.
+
+**Where:** `frontend/src/pages/{SettingsPage,CheckInPage,PatternsPage,
+HomePage}.css`, `frontend/src/pages/SettingsPage.tsx` (two-column
+markup restructure)
+
+**Tested at a real 1920x1000 desktop resolution** (not just 1440,
+since that's what the user's own screenshots were taken at) across all
+four pages -- confirmed via screenshots that the top nav and content
+now span close to the full width with no stranded-narrow-column
+effect, then re-verified mobile (375px) was completely unaffected by
+these changes. Zero console errors.

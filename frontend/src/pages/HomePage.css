@@ -294,3 +294,16 @@
       "conversations themes reminder";
   }
 }
+
+/* Very wide screens: use more of the available width instead of leaving
+   it capped and stranded in the middle of the page. */
+@media (min-width: 1300px) {
+  .home-page {
+    max-width: min(92vw, 1700px);
+    padding: 24px 48px 40px;
+  }
+
+  .home-card {
+    padding: 22px;
+  }
+}

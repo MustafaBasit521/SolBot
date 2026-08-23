@@ -14,6 +14,17 @@
   margin: 0 0 24px;
 }
 
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-col {
+  display: flex;
+  flex-direction: column;
+}
+
 .settings-section-label {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
@@ -56,10 +67,19 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
+  transition: color 0.15s ease;
 }
 
 .settings-row-action.destructive {
   color: var(--clay-text);
+}
+
+button.settings-row-action:hover {
+  color: var(--green-base);
+}
+
+button.settings-row-action.destructive:hover {
+  color: var(--clay-mark);
 }
 
 .settings-conversation-list {
@@ -77,6 +97,11 @@
   border-bottom: 1px solid var(--ink-hairline);
   font-size: 0.9rem;
   color: var(--ink-primary);
+  transition: background 0.15s ease;
+}
+
+.settings-conversation-row:hover {
+  background: var(--paper-selected);
 }
 
 .settings-conversation-row:last-child {
@@ -102,9 +127,35 @@
   margin: -12px 0 16px;
 }
 
+/* Tablet: a bit more room, still one column -- there isn't enough
+   distinct content yet for two columns to feel balanced at this width. */
 @media (min-width: 700px) {
   .settings-page {
     max-width: 760px;
     padding: 32px 32px 32px;
+  }
+}
+
+/* Desktop: two real columns (privacy/erase-account vs. per-conversation
+   erase) instead of one narrow stack, and the page actually uses the
+   width of the screen instead of floating in a fixed-width island. */
+@media (min-width: 1000px) {
+  .settings-page {
+    max-width: min(92vw, 1700px);
+    padding: 24px 40px 40px;
+  }
+
+  .settings-heading {
+    font-size: 1.9rem;
+  }
+
+  .settings-grid {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+  }
+
+  .settings-col {
+    flex: 1;
   }
 }

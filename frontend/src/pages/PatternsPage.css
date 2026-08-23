@@ -42,6 +42,12 @@
   font-size: 0.85rem;
   color: var(--ink-secondary);
   cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.patterns-range-button:not(.active):hover {
+  border-color: var(--green-base);
+  color: var(--green-base);
 }
 
 .patterns-range-button.active {
@@ -130,8 +136,29 @@
   }
 }
 
-@media (min-width: 1100px) {
+/* Desktop: the page actually fills a real share of the screen, and the
+   mood chart gets proportionally taller so it reads as a focal point
+   rather than a small graphic in a wide empty card. */
+@media (min-width: 1300px) {
   .patterns-page {
-    max-width: 1100px;
+    max-width: min(92vw, 1700px);
+    padding: 24px 48px 40px;
+  }
+
+  .patterns-heading {
+    font-size: 2rem;
+  }
+
+  .patterns-grid {
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+  }
+
+  .patterns-card {
+    padding: 24px 28px;
+  }
+
+  .patterns-card svg {
+    height: 220px;
   }
 }
