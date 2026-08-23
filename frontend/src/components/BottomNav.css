@@ -2,11 +2,23 @@
   position: sticky;
   bottom: 0;
   display: flex;
+  align-items: center;
   justify-content: space-around;
   background: var(--paper-raised);
   border-top: 1px solid var(--ink-hairline);
   padding: 10px 0 max(10px, env(safe-area-inset-bottom));
   margin-top: 24px;
+}
+
+.bottom-nav-brand,
+.bottom-nav-badge {
+  display: none;
+}
+
+.bottom-nav-items {
+  display: flex;
+  justify-content: space-around;
+  flex: 1;
 }
 
 .bottom-nav-item {
@@ -15,7 +27,14 @@
   color: var(--ink-meta);
   font-size: 0.75rem;
   cursor: pointer;
-  padding: 4px 12px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.bottom-nav-item:hover {
+  color: var(--green-base);
+  background: var(--green-wash);
 }
 
 .bottom-nav-item.active {
@@ -23,13 +42,51 @@
   font-weight: 600;
 }
 
-/* Desktop: nav doesn't need to hug the very bottom of a tall viewport --
-   let it sit right under the content instead of stretching down. */
-@media (min-width: 1024px) {
+/* Desktop: becomes a top bar (brand + tabs + badge) instead of a bottom
+   tab strip -- repositioned above the page content via `order` on the
+   flex container each page wraps itself in, not by moving in the DOM. */
+@media (min-width: 900px) {
   .bottom-nav {
-    position: static;
-    justify-content: flex-start;
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    border-top: none;
+    border-bottom: 1px solid var(--ink-hairline);
+    justify-content: space-between;
     gap: 24px;
-    margin-top: 40px;
+    margin-top: 0;
+    margin-bottom: 24px;
+    padding: 14px 0;
+    z-index: 5;
+    /* Visually moves the nav above the page's other content without
+       changing its DOM position -- each page keeps <BottomNav /> at the
+       end of its markup, and just needs to be a flex column for this to
+       take effect. */
+    order: -1;
+  }
+
+  .bottom-nav-brand {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: var(--ink-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .bottom-nav-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-quiet);
+    flex-shrink: 0;
+  }
+
+  .bottom-nav-items {
+    justify-content: flex-start;
+    gap: 8px;
+    flex: 1;
   }
 }

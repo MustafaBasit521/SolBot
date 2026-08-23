@@ -983,3 +983,72 @@ real check-ins and a real chat message that Home's Mood trend sparkline
 and Themes tags render actual data (a rising 30->75 line, a real
 `disappointment` tag) rather than only checking the empty states.
 Zero console errors across all screenshots.
+
+---
+
+## 2026-08-24 — Top nav bar, real 3-column Home grid, computed header copy
+
+**What:** The user shared a comparison against a Claude-Design-generated
+mockup of Home and asked for it specifically: a top nav bar (brand +
+tabs + badge) instead of bottom tabs at desktop widths, a proper
+3-column card grid, and a time-aware, data-driven header (greeting,
+date, last check-in, a real mood-trend insight) instead of static text.
+
+**How:**
+- `BottomNav` now renders a brand mark (`☀ Sol`) and a "Research
+  prototype" badge alongside the nav items, both hidden on mobile
+  (`display: none` by default) and shown only at `>=900px`. At that
+  same breakpoint the nav itself switches from `position: sticky;
+  bottom: 0` with a top border to `position: sticky; top: 0` with a
+  bottom border and `order: -1` -- which visually moves it above the
+  page's other content **without changing where `<BottomNav />` sits
+  in the JSX**, since each page already renders it last; making the
+  page's root container `display: flex; flex-direction: column` is
+  the only other change needed per page. Applied consistently to
+  Home, Check-in, Patterns, and Settings so the whole app (not just
+  Home) gets the same top-bar treatment on desktop -- Chat keeps its
+  own separate sidebar-based desktop layout and hides this nav
+  entirely there, unchanged.
+- `HomePage`'s grid rebuilt with named `grid-template-areas` (mood,
+  env, trend, conversations, themes, reminder) instead of the previous
+  main-column/side-column split -- a real `1.6fr 1fr 1fr` two-row grid
+  at `>=900px` that keeps columns aligned between rows, single column
+  on mobile.
+- `lib/homeCopy.ts` (new) -- `timeOfDayGreeting()`, `dateLine()`,
+  `relativeTime()`, and `moodTrendCaption()`. The mood-trend caption is
+  a genuine computed comparison (average of the recent half of the
+  window vs. the earlier half, mirrored in a small local function), not
+  copied flavor text from the mockup -- it returns `null` (renders
+  nothing) when there isn't enough data to say anything meaningful,
+  rather than fabricating an insight.
+- Hover/transition polish added to cards, buttons, and conversation
+  rows (subtle lift + shadow/border-color change) -- addresses the
+  "make it interactive and engaging" part of the ask specifically.
+
+**Where:** `frontend/src/components/BottomNav.tsx` + `.css`,
+`frontend/src/pages/HomePage.tsx` + `.css` (rewritten),
+`frontend/src/lib/homeCopy.ts` (new), `frontend/src/pages/{CheckInPage,
+PatternsPage,SettingsPage}.css` (flex-column root, one line each)
+
+**A real bug found and fixed, and a false alarm correctly ruled out
+rather than "fixed" blindly:**
+- **Real bug**: the sticky nav's `order: -1` alone wasn't enough to
+  give it a sensible desktop position without also making each page's
+  root a flex container -- fixed by adding `display: flex;
+  flex-direction: column` to all four pages sharing `BottomNav`.
+- **False alarm**: an initial screenshot appeared to show the mobile
+  nav overlapping the last card's text, which looked like a spacing
+  bug. Rather than guessing at a fix, dumped actual `getBoundingClientRect`
+  values and scrolled programmatically to the true bottom of the page --
+  confirmed the "overlap" only exists mid-scroll (expected, standard
+  behavior for any sticky bottom bar, identical to how every mobile
+  app's tab bar works) and fully clears with room to spare once
+  scrolled to the actual end of the content. No fix was needed for
+  that part; a small `margin-bottom: 80px` on the grid was kept anyway
+  as a deliberate, generous clearance buffer.
+
+**Tested at mobile (375px) and desktop (1440px) across Home, Check-in,
+Patterns, Settings, and Chat:** nav position/contents verified via
+actual `boundingClientRect`/`isVisible()` checks (not just screenshots)
+at both sizes; confirmed Chat's separate desktop sidebar/nav-hiding
+behavior is unaffected. Zero console errors across the whole pass.
