@@ -274,6 +274,12 @@
   border-color: var(--green-tint);
 }
 
+.home-reminder-card:hover {
+  border-color: var(--green-base);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
 /* Tablet and up: a real 3-column grid -- mood/actions and conversations
    are the wide left column, the other four cards form two narrower
    columns to their right, matching across both rows. */

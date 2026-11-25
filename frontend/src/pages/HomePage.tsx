@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  createConversation,
-  getEmotionalThemes,
-  getMoodTrend,
-  listCheckIns,
-  listConversations,
-} from "../api/client";
+import { getEmotionalThemes, getMoodTrend, listCheckIns, listConversations } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import type { CheckIn, Conversation, EmotionalTheme, MoodTrendPoint } from "../api/types";
 import { BottomNav } from "../components/BottomNav";
+import { ChatFAB } from "../components/ChatFAB";
 import { Sparkline } from "../components/Sparkline";
 import { dateLine, moodTrendCaption, relativeTime, timeOfDayGreeting } from "../lib/homeCopy";
 import "./HomePage.css";
@@ -30,7 +25,6 @@ export function HomePage() {
   const [themes, setThemes] = useState<EmotionalTheme[]>([]);
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,14 +38,11 @@ export function HomePage() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  async function handleStartChat() {
-    setIsCreating(true);
-    try {
-      const conversation = await createConversation();
-      navigate(`/chat/${conversation.id}`);
-    } finally {
-      setIsCreating(false);
-    }
+  function handleStartChat() {
+    // The conversation itself isn't created here -- only once the user
+    // actually sends a first message, so clicking this never leaves an
+    // empty "Untitled conversation" behind in the list below.
+    navigate("/chat/new");
   }
 
   function handleQuickMood(label: string, value: number) {
@@ -103,7 +94,6 @@ export function HomePage() {
             <button
               className="home-action home-action-primary"
               onClick={handleStartChat}
-              disabled={isCreating}
             >
               <span className="home-action-title">Start text chat</span>
               <span className="home-action-subtitle">Write at your own pace</span>
@@ -194,6 +184,7 @@ export function HomePage() {
       </div>
 
       <BottomNav />
+      <ChatFAB />
     </div>
   );
 }

@@ -6,7 +6,7 @@ from app.database.connection import get_db
 from app.database.repositories import conversation_repository
 from app.models.conversation import Conversation
 from app.models.user import User
-from app.schemas.conversation import ConversationCreate, ConversationOut
+from app.schemas.conversation import ConversationCreate, ConversationOut, ConversationRename
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
@@ -32,6 +32,15 @@ def list_conversations(
 @router.get("/{conversation_id}", response_model=ConversationOut)
 def get_conversation(conversation: Conversation = Depends(get_owned_conversation)):
     return conversation
+
+
+@router.patch("/{conversation_id}", response_model=ConversationOut)
+def rename_conversation(
+    payload: ConversationRename,
+    conversation: Conversation = Depends(get_owned_conversation),
+    db: Session = Depends(get_db),
+):
+    return conversation_repository.rename_conversation(db, conversation, title=payload.title)
 
 
 @router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)

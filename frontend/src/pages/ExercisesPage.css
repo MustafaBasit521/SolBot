@@ -104,6 +104,14 @@
 
   .exercises-grid {
     grid-template-columns: repeat(2, 1fr);
+    align-items: start;
+  }
+
+  /* An expanded card takes the full row instead of sitting stretched
+     next to a much shorter, still-collapsed sibling -- the sibling
+     just flows onto its own row below instead of looking mismatched. */
+  .exercise-card-open {
+    grid-column: 1 / -1;
   }
 }
 

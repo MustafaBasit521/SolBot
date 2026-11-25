@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { BackArrow } from "../components/BackArrow";
 import "./EnvironmentalPage.css";
 
 export function EnvironmentalPage() {
@@ -15,7 +16,7 @@ export function EnvironmentalPage() {
           scored against you.
         </p>
         <button className="env-back" onClick={() => navigate("/")}>
-          &larr; Back to Home
+          <BackArrow /> Back to Home
         </button>
       </div>
     </div>

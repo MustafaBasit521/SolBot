@@ -1,0 +1,33 @@
+.chat-fab {
+  position: fixed;
+  right: 20px;
+  /* Above the mobile bottom-nav bar, not overlapping it. */
+  bottom: 84px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--green-base);
+  color: var(--paper-raised);
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-card), 0 4px 12px rgba(24, 44, 40, 0.25);
+  z-index: 50;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.chat-fab:hover {
+  background: var(--green-pressed);
+  transform: translateY(-2px);
+}
+
+@media (min-width: 900px) {
+  .chat-fab {
+    /* The nav becomes a top bar at this width, so there's nothing at
+       the bottom edge to clear. */
+    bottom: 24px;
+  }
+}

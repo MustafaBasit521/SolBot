@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ARTICLES, type Article } from "../lib/articlesContent";
+import { BackArrow } from "../components/BackArrow";
 import { BottomNav } from "../components/BottomNav";
+import { ChatFAB } from "../components/ChatFAB";
 import "./ArticlesPage.css";
 
 const CATEGORIES: Article["category"][] = ["Anxiety", "Mood", "How Sol works", "Eco-anxiety"];
@@ -55,7 +57,7 @@ export function ArticlesPage() {
           {selected ? (
             <>
               <button className="articles-back" onClick={() => setMobileView("list")}>
-                &larr; Back to articles
+                <BackArrow /> Back to articles
               </button>
               <p className="articles-reader-category">{selected.category}</p>
               <h2 className="articles-reader-title">{selected.title}</h2>
@@ -76,6 +78,7 @@ export function ArticlesPage() {
       </button>
 
       <BottomNav />
+      <ChatFAB />
     </div>
   );
 }

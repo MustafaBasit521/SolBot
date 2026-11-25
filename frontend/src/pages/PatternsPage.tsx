@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getEmotionalThemes, getMoodTrend } from "../api/client";
 import type { EmotionalTheme, MoodTrendPoint } from "../api/types";
 import { BottomNav } from "../components/BottomNav";
+import { ChatFAB } from "../components/ChatFAB";
 import "./PatternsPage.css";
 
 const CHART_WIDTH = 300;
@@ -157,6 +158,7 @@ export function PatternsPage() {
       </div>
 
       <BottomNav />
+      <ChatFAB />
     </div>
   );
 }

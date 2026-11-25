@@ -83,13 +83,30 @@
     gap: 24px;
     margin-top: 0;
     margin-bottom: 24px;
-    padding: 14px 0;
     z-index: 5;
     /* Visually moves the nav above the page's other content without
        changing its DOM position -- each page keeps <BottomNav /> at the
        end of its markup, and just needs to be a flex column for this to
        take effect. */
     order: -1;
+    /* Full-bleed: every page body is capped at a max-width and centered,
+       but the nav bar itself should span the whole viewport regardless
+       of that cap -- break out of the parent with the vw trick, then
+       pad the inner content back in so it lines up with the page body
+       below (which caps out at 1700px / 92vw, same formula here). */
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding: 14px max(4vw, calc((100vw - 1700px) / 2));
+    box-sizing: border-box;
+    /* `order` only reorders which child paints first -- the page's own
+       top padding still wraps around this box either way, so at the
+       very top of the page (before anything scrolls) that padding
+       shows as a strip above the nav. Pull the nav up through it
+       (matches the ~24px top padding most pages use) and match the
+       page background so the color underneath it also disappears. */
+    margin-top: -24px;
+    background: var(--paper-app);
   }
 
   .bottom-nav-brand {

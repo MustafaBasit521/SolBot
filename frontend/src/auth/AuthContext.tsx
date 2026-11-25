@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { clearToken, getMe, getToken, login as apiLogin, setToken } from "../api/client";
+import { ApiError, clearToken, getMe, getToken, login as apiLogin, setToken } from "../api/client";
 import type { User } from "../api/types";
 
 interface AuthContextValue {
@@ -22,7 +22,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     getMe()
       .then(setUser)
-      .catch(() => clearToken())
+      .catch((err) => {
+        // Only a genuinely invalid/expired token should sign the user
+        // out. A network blip, a slow/temporarily-down backend, or any
+        // other transient failure here used to clear the token too --
+        // silently logging someone out mid-session for reasons that
+        // have nothing to do with their login being invalid.
+        if (err instanceof ApiError && err.status === 401) {
+          clearToken();
+        }
+      })
       .finally(() => setIsLoading(false));
   }, []);
 

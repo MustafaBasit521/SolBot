@@ -8,13 +8,12 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Short timeout, no retries: this call gates a safety decision, so on the
-# free-tier's shared rate limit it must fail fast and fall back to the
-# keyword layer rather than leaving the user waiting tens of seconds while
-# the SDK retries with the provider's 24s backoff.
+# Short timeout, no retries: this call gates a safety decision, so it
+# must fail fast and fall back to the keyword layer rather than leaving
+# the user waiting if the provider is ever slow.
 _client = OpenAI(
-    base_url=settings.openrouter_base_url,
-    api_key=settings.openrouter_api_key,
+    base_url=settings.gemini_base_url,
+    api_key=settings.gemini_api_key,
     timeout=10.0,
     max_retries=0,
 )

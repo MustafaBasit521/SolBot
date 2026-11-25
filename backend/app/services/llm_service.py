@@ -7,7 +7,7 @@ from app.prompts.system_prompt import SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
-_client = OpenAI(base_url=settings.openrouter_base_url, api_key=settings.openrouter_api_key)
+_client = OpenAI(base_url=settings.gemini_base_url, api_key=settings.gemini_api_key)
 
 
 def generate_reply(history: list[dict[str, str]], strategy_guidance: str | None = None) -> str:

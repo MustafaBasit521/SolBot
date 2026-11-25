@@ -9,6 +9,7 @@ import {
 import { useAuth } from "../auth/AuthContext";
 import type { Conversation } from "../api/types";
 import { BottomNav } from "../components/BottomNav";
+import { ChatFAB } from "../components/ChatFAB";
 import "./SettingsPage.css";
 
 export function SettingsPage() {
@@ -126,6 +127,7 @@ export function SettingsPage() {
       </div>
 
       <BottomNav />
+      <ChatFAB />
     </div>
   );
 }

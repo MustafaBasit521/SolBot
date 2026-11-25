@@ -32,3 +32,10 @@ def list_conversations_for_user(db: Session, user_id: uuid.UUID) -> list[Convers
 def delete_conversation(db: Session, conversation: Conversation) -> None:
     db.delete(conversation)
     db.commit()
+
+
+def rename_conversation(db: Session, conversation: Conversation, *, title: str) -> Conversation:
+    conversation.title = title
+    db.commit()
+    db.refresh(conversation)
+    return conversation

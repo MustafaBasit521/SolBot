@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { createGoal, deleteGoal, listGoals, toggleGoalToday } from "../api/client";
 import type { Goal } from "../api/types";
 import { BottomNav } from "../components/BottomNav";
+import { ChatFAB } from "../components/ChatFAB";
 import "./GoalsPage.css";
 
 function lastSevenDays(): string[] {
@@ -125,6 +126,7 @@ export function GoalsPage() {
           No goals yet. Start with something small you could actually do today.
         </p>
       ) : (
+        <div className="goals-panel">
         <div className="goals-list">
           {goals.map((goal) => {
             const doneToday = goal.completed_dates.includes(TODAY);
@@ -160,9 +162,11 @@ export function GoalsPage() {
             );
           })}
         </div>
+        </div>
       )}
 
       <BottomNav />
+      <ChatFAB />
     </div>
   );
 }

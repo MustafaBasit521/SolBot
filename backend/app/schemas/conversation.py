@@ -1,11 +1,15 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ConversationCreate(BaseModel):
     title: str | None = None
+
+
+class ConversationRename(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
 
 
 class ConversationOut(BaseModel):

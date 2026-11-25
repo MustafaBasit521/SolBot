@@ -78,6 +78,12 @@
   text-align: center;
 }
 
+.goals-panel {
+  background: var(--paper-sunken);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
 .goals-list {
   display: flex;
   flex-direction: column;

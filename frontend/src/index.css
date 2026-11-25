@@ -107,3 +107,12 @@ a {
 input {
   font-family: inherit;
 }
+
+/* Shared "back" button icon (see components/BackArrow.tsx) -- used
+   wherever a button reads "back to X" so the arrow itself is a
+   consistent, intentional icon rather than a plain text glyph. */
+.back-arrow-icon {
+  vertical-align: -4px;
+  margin-right: 4px;
+  flex-shrink: 0;
+}

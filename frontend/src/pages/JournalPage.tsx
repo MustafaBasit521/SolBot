@@ -6,7 +6,9 @@ import {
   updateJournalEntry,
 } from "../api/client";
 import type { JournalEntry } from "../api/types";
+import { BackArrow } from "../components/BackArrow";
 import { BottomNav } from "../components/BottomNav";
+import { ChatFAB } from "../components/ChatFAB";
 import "./JournalPage.css";
 
 export function JournalPage() {
@@ -124,7 +126,7 @@ export function JournalPage() {
           {showEditor ? (
             <div className="journal-editor">
               <button className="journal-back-button" onClick={() => setMobileView("list")}>
-                &larr; Back to entries
+                <BackArrow /> Back to entries
               </button>
               <input
                 className="journal-title-input"
@@ -163,6 +165,7 @@ export function JournalPage() {
       </div>
 
       <BottomNav />
+      <ChatFAB />
     </div>
   );
 }

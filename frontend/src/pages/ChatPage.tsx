@@ -5,9 +5,11 @@ import {
   createConversation,
   listConversations,
   listMessages,
+  renameConversation,
   sendChatMessage,
 } from "../api/client";
 import type { ChatResponse, Conversation, Message } from "../api/types";
+import { BackArrow } from "../components/BackArrow";
 import { BottomNav } from "../components/BottomNav";
 import { GroundingSOS } from "../components/GroundingSOS";
 import "./ChatPage.css";
@@ -37,11 +39,23 @@ export function ChatPage() {
   // re-derived from history on load, since the grounding overlay is a
   // live, in-the-moment intervention, not something to replay on reload.
   const [showGrounding, setShowGrounding] = useState(false);
+  const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
+  const [titleDraft, setTitleDraft] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!conversationId) return;
     setLastResult(null);
+
+    // Not yet a real conversation -- nothing to fetch. It's only
+    // created in the backend once the user actually sends a message
+    // (see handleSend), so this never leaves an empty entry behind.
+    if (conversationId === "new") {
+      setMessages([]);
+      setIsLoading(false);
+      return;
+    }
+
     listMessages(conversationId)
       .then((msgs) => {
         setMessages(msgs);
@@ -71,9 +85,28 @@ export function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  async function handleNewConversation() {
-    const conversation = await createConversation();
-    navigate(`/chat/${conversation.id}`);
+  function handleNewConversation() {
+    navigate("/chat/new");
+  }
+
+  function startEditingTitle(c: Conversation) {
+    setEditingTitleId(c.id);
+    setTitleDraft(c.title ?? "");
+  }
+
+  async function saveTitle(id: string) {
+    const title = titleDraft.trim();
+    setEditingTitleId(null);
+    if (!title) return;
+
+    const previous = conversations;
+    setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, title } : c)));
+    try {
+      await renameConversation(id, title);
+    } catch {
+      setConversations(previous);
+      setError("Couldn't rename that conversation.");
+    }
   }
 
   async function handleSend(event: FormEvent) {
@@ -96,13 +129,27 @@ export function ChatPage() {
     setMessages((prev) => [...prev, optimisticUserMessage]);
 
     try {
-      const result = await sendChatMessage(conversationId, content);
+      // The conversation doesn't exist server-side yet on a fresh
+      // "new" chat -- create it now, on the first real message, then
+      // swap the URL to its real id without disturbing what's already
+      // on screen.
+      let targetId = conversationId;
+      if (targetId === "new") {
+        const conversation = await createConversation();
+        targetId = conversation.id;
+      }
+
+      const result = await sendChatMessage(targetId, content);
       setMessages((prev) => [...prev, result.reply]);
       if (result.risk.risk_level >= CRISIS_RISK_THRESHOLD) {
         setSafetyMessageIds((prev) => new Set(prev).add(result.reply.id));
         setShowGrounding(true);
       }
       setLastResult(result);
+
+      if (targetId !== conversationId) {
+        navigate(`/chat/${targetId}`, { replace: true });
+      }
     } catch (err) {
       setMessages((prev) => prev.filter((m) => m.id !== optimisticUserMessage.id));
       setDraft(content);
@@ -118,6 +165,17 @@ export function ChatPage() {
 
   return (
     <div className="chat-page">
+      <header className="chat-header">
+        <button className="chat-back" onClick={() => navigate("/")}>
+          <BackArrow /> Home
+        </button>
+        <div className="chat-header-center">
+          <h1 className="chat-heading">Sol</h1>
+          <p className="chat-subtitle">Supportive conversation · not clinical care</p>
+        </div>
+        <div className="chat-header-spacer" aria-hidden="true" />
+      </header>
+
       <aside className="chat-sidebar">
         <h2 className="chat-sidebar-heading">Sol</h2>
         <button className="chat-new-conversation" onClick={handleNewConversation}>
@@ -125,16 +183,41 @@ export function ChatPage() {
         </button>
         <p className="chat-sidebar-section">Conversations</p>
         <ul className="chat-sidebar-list">
-          {conversations.map((c) => (
-            <li key={c.id}>
-              <button
-                className={`chat-sidebar-item ${c.id === conversationId ? "active" : ""}`}
-                onClick={() => navigate(`/chat/${c.id}`)}
-              >
-                {c.title ?? "Untitled conversation"}
-              </button>
-            </li>
-          ))}
+          {conversations.map((c) =>
+            editingTitleId === c.id ? (
+              <li key={c.id}>
+                <input
+                  className="chat-sidebar-title-input"
+                  autoFocus
+                  value={titleDraft}
+                  onChange={(e) => setTitleDraft(e.target.value)}
+                  onBlur={() => saveTitle(c.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveTitle(c.id);
+                    if (e.key === "Escape") setEditingTitleId(null);
+                  }}
+                  maxLength={255}
+                />
+              </li>
+            ) : (
+              <li key={c.id} className="chat-sidebar-item-row">
+                <button
+                  className={`chat-sidebar-item ${c.id === conversationId ? "active" : ""}`}
+                  onClick={() => navigate(`/chat/${c.id}`)}
+                >
+                  {c.title ?? "Untitled conversation"}
+                </button>
+                <button
+                  className="chat-sidebar-rename"
+                  onClick={() => startEditingTitle(c)}
+                  aria-label="Rename conversation"
+                  title="Rename conversation"
+                >
+                  ✎
+                </button>
+              </li>
+            ),
+          )}
         </ul>
         <button className="chat-sidebar-link" onClick={() => navigate("/patterns")}>
           Your patterns
@@ -145,16 +228,6 @@ export function ChatPage() {
       </aside>
 
       <div className="chat-main">
-        <header className="chat-header">
-          <button className="chat-back" onClick={() => navigate("/")}>
-            &larr; Home
-          </button>
-          <div>
-            <h1 className="chat-heading">Sol</h1>
-            <p className="chat-subtitle">Supportive conversation · not clinical care</p>
-          </div>
-        </header>
-
         <div className="chat-thread">
           {isLoading && messages.length === 0 && (
             <p className="chat-muted">Loading conversation...</p>

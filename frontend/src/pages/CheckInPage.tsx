@@ -14,6 +14,7 @@ import {
   stressWord,
 } from "../lib/checkInWords";
 import { BottomNav } from "../components/BottomNav";
+import { ChatFAB } from "../components/ChatFAB";
 import "./CheckInPage.css";
 
 interface Dimension {
@@ -108,6 +109,7 @@ export function CheckInPage() {
       {saved && <p className="checkin-saved">Saved. Thanks for checking in.</p>}
 
       <BottomNav />
+      <ChatFAB />
     </div>
   );
 }

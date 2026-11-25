@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { EXERCISES, type Exercise } from "../lib/exercisesContent";
 import { BottomNav } from "../components/BottomNav";
+import { ChatFAB } from "../components/ChatFAB";
 import "./ExercisesPage.css";
 
 const CATEGORIES: Exercise["category"][] = ["Breathing", "Grounding", "CBT worksheet"];
@@ -23,7 +24,7 @@ export function ExercisesPage() {
             {EXERCISES.filter((e) => e.category === category).map((exercise) => {
               const isOpen = openId === exercise.id;
               return (
-                <div className="exercise-card" key={exercise.id}>
+                <div className={`exercise-card ${isOpen ? "exercise-card-open" : ""}`} key={exercise.id}>
                   <button
                     className="exercise-title-row"
                     onClick={() => setOpenId(isOpen ? null : exercise.id)}
@@ -49,6 +50,7 @@ export function ExercisesPage() {
       ))}
 
       <BottomNav />
+      <ChatFAB />
     </div>
   );
 }

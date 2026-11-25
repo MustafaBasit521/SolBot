@@ -10,9 +10,14 @@ class Settings(BaseSettings):
 
     database_url: str
 
-    openrouter_api_key: str
+    # Kept around, unused, so switching back is just an env-var change --
+    # not deleted since it's the user's own key.
+    openrouter_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    llm_model: str = "openai/gpt-oss-20b:free"
+
+    gemini_api_key: str
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    llm_model: str = "gemini-3.5-flash-lite"
 
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"

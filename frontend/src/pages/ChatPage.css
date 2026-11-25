@@ -1,5 +1,7 @@
 .chat-page {
   height: 100%;
+  display: flex;
+  flex-direction: column;
   background: var(--paper-raised);
 }
 
@@ -12,25 +14,53 @@
   max-width: 640px;
   margin: 0 auto;
   padding: 16px 16px 24px;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   background: var(--paper-raised);
 }
 
+/* A real nav-bar strip -- now a sibling of the sidebar/main/context
+   panels rather than nested inside .chat-main, so it spans the whole
+   page width (sidebars included) instead of stopping at the chat
+   column's own edges. */
 .chat-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 88px 1fr 88px;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--paper-app);
+  border-bottom: 1px solid var(--ink-hairline);
+  flex-shrink: 0;
 }
 
 .chat-back {
+  justify-self: start;
   background: none;
   border: none;
   color: var(--ink-meta);
   cursor: pointer;
   font-size: 0.9rem;
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.chat-back:hover {
+  background: var(--green-wash);
+  color: var(--green-base);
+}
+
+.chat-header-center {
+  text-align: center;
+  min-width: 0;
+}
+
+.chat-header-spacer {
+  justify-self: end;
 }
 
 .chat-heading {
@@ -180,6 +210,10 @@
     padding: 20px 24px 28px;
   }
 
+  .chat-header {
+    padding: 14px 24px;
+  }
+
   .chat-bubble {
     max-width: 70%;
     font-size: 1rem;
@@ -193,7 +227,16 @@
   .chat-page {
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr) 280px;
+    /* Row 1 is the full-width header bar; row 2 is the 3-pane shell
+       below it, filling the remaining height. */
+    grid-template-rows: auto 1fr;
     align-items: stretch;
+  }
+
+  .chat-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding: 14px 32px;
   }
 
   .chat-sidebar,
@@ -285,6 +328,49 @@
   background: var(--paper-selected);
   color: var(--ink-primary);
   font-weight: 600;
+}
+
+.chat-sidebar-item-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.chat-sidebar-item-row .chat-sidebar-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-sidebar-rename {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--ink-quiet);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--radius-md);
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.chat-sidebar-item-row:hover .chat-sidebar-rename {
+  opacity: 1;
+}
+
+.chat-sidebar-rename:hover {
+  background: var(--green-wash);
+  color: var(--green-base);
+}
+
+.chat-sidebar-title-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--green-base);
+  background: #ffffff;
+  color: var(--ink-primary);
+  font-size: 0.85rem;
 }
 
 .chat-sidebar-link {

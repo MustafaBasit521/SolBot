@@ -1267,3 +1267,224 @@ animation fix. All test accounts deleted from Neon afterward.
 
 **Still open:** the real Umang/Rozan phone numbers for the crisis
 page (still a placeholder, by design -- not guessed).
+
+## 2026-08-24 (later) — Polish pass: full-bleed nav, chat rename, crisis-page redesign, layout fixes
+
+A round of direct visual feedback after screenshots of the running
+app, covering nav layout, several pages' visual polish, and two new
+small features.
+
+**Top nav now genuinely full-bleed:** the desktop nav bar's background
+previously stopped at the page body's own `max-width` (it's a child of
+that centered container), so it visually floated as a bar with gutters
+instead of spanning the viewport. Fixed with the standard full-bleed
+CSS trick (`width:100vw` + negative `calc(50% - 50vw)` margins) inside
+`BottomNav.css`'s existing desktop media query -- no JSX/page
+restructuring needed, since it doesn't depend on the parent's width.
+Inner padding uses the same `max(4vw, (100vw-1700px)/2)` formula the
+page bodies use for their own centering, so the nav's content still
+lines up with the page content below it.
+
+**Goals now sit in a distinct panel:** the goal cards were floating
+directly on the page background with no visual container. Wrapped
+them in a `.goals-panel` with a `--paper-sunken` (grey-white) background
+distinct from the page's `--paper-app`, so it now reads as a defined
+section rather than loose cards in empty space.
+
+**Crisis Help page redesigned:** added an icon badge per card, and gave
+the "immediate danger" card a visually distinct urgent treatment
+(clay/red tint, separate from the other two's neutral styling) plus a
+hover state on all three -- more structured and less flat than the
+original plain bordered rows.
+
+**Exercises accordion fixed:** expanding one card in the 2-column grid
+left its same-row sibling short and mismatched (grid row height was
+set by the tall expanded card, but the sibling didn't stretch to
+match, so it just sat awkwardly next to a lot of empty space). Fixed
+by making an open card span the full row (`grid-column: 1 / -1`) so
+its sibling flows onto its own row below instead of sitting oddly
+beside a much taller neighbor.
+
+**Conversation renaming:** added `PATCH /conversations/{id}` (title
+only) plus a pencil-icon affordance in the chat sidebar's conversation
+list (visible on row hover, inline text input on click, save on
+Enter/blur, cancel on Escape). Optimistic update with rollback on
+failure, matching the pattern used elsewhere (e.g. goal toggling).
+
+**Chat page header restyled as a real nav bar:** previously just an
+inline back-link next to a text block. Now a bordered bar that bleeds
+to the edges of the chat column, back button pinned left via a
+3-column grid (`88px 1fr 88px`) with the title block centered in the
+middle column and an equal-width empty spacer on the right for true
+centering -- sidebar and session-context panel untouched, per the
+explicit "don't remove the sidebar" instruction.
+
+**Floating chat button:** new `ChatFAB` component, a persistent
+bottom-right circular button (💬) that starts a fresh conversation and
+jumps into chat -- added to every main page except Chat itself
+(redundant there) and Crisis Help (deliberately kept a chat-free,
+person/service-first page).
+
+**Reminder card hover effect** added on Home, matching the lift +
+border-color pattern already used on the environmental and
+conversation cards.
+
+**Answered, not built:** the user asked what the Home page's "Themes
+this fortnight" and "Mood trend" boxes are -- these are the existing
+`emotional-themes` and `mood-trend` insight endpoints already wired up
+(not new/broken); they looked sparse in review only because the test
+account had just 1 check-in and 1 classified message.
+
+**Where:** `frontend/src/components/BottomNav.css` (full-bleed),
+`frontend/src/pages/GoalsPage.{tsx,css}` (panel),
+`frontend/src/pages/CrisisHelpPage.{tsx,css}` (redesign),
+`frontend/src/pages/ExercisesPage.{tsx,css}` (accordion fix),
+`backend/app/{schemas/conversation.py,database/repositories/
+conversation_repository.py,api/routes/conversations.py}` +
+`frontend/src/api/client.ts` (rename), `frontend/src/pages/
+ChatPage.{tsx,css}` (header + sidebar rename UI),
+`frontend/src/components/ChatFAB.{tsx,css}` (new, added to 8 pages),
+`frontend/src/pages/HomePage.css` (reminder hover).
+
+**Tested at 375px and 1920px:** 21/21 automated checks (full-bleed nav
+width, FAB presence, goals panel background, exercises expanded-card
+width vs. sibling, crisis card icons/urgent styling, chat header
+centering, actual rename round-tripped through the real API), zero
+console errors, plus visual screenshots confirming each fix. All test
+accounts deleted from Neon afterward.
+
+## 2026-08-24 (later still) — Bot outage root-caused, chat header full-bleed, lazy conversation creation, auth-logout bug
+
+**Root cause of "bot not working":** OpenRouter retired the free tier
+for `openai/gpt-oss-20b:free` -- every chat request was 404ing
+upstream ("This model is unavailable for free... use this slug
+instead: openai/gpt-oss-20b" -- the *paid* version). Queried
+OpenRouter's live `/api/v1/models` for currently-free models, smoke-
+tested several directly (two of the obvious picks, `gemma-4-31b-it`
+and `glm-5.2`, were themselves rate-limited upstream at the time),
+and landed on `nvidia/nemotron-3-nano-30b-a3b:free` -- verified live
+for both the conversational reply *and* the risk-classifier's JSON
+output before switching `LLM_MODEL` in `.env` and `config.py`'s
+default. Confirmed end-to-end via a direct curl to the real chat
+endpoint: works, but honestly slow (~15-20s per reply, since risk
+classification and the main reply are two sequential calls to a free-
+tier model) -- worth knowing, not hidden.
+
+**Chat header now spans the sidebars too:** moved `<header
+className="chat-header">` out of `.chat-main` to be a sibling of
+`.chat-sidebar`/`.chat-context`, and gave the desktop grid explicit
+rows (`grid-template-rows: auto 1fr`) with the header spanning
+`grid-column: 1 / -1` in row 1 -- so the bar's background/border now
+runs the full page width instead of stopping at the chat column's own
+edges, per direct request.
+
+**Back-arrow icon:** every "back to X" button (chat, articles,
+journal, crisis-help, environmental) was using a plain `&larr;`
+character. Replaced with a shared `<BackArrow/>` component -- a small
+circle-and-chevron SVG using `currentColor`, consistent across all 5
+and the dark crisis page alike.
+
+**Real bug: top-nav gap.** `order:-1` only reorders which child
+*paints* first -- the page's own top padding still wraps around the
+nav either way, so at true scroll-position-zero you'd see a strip of
+the page's padding (a slightly different shade) above the nav, which
+then disappeared on any scroll since the padding isn't sticky but the
+nav is. Confirmed by comparing a top-of-page screenshot against a
+scrolled one before touching anything. Fixed with `margin-top: -24px`
+(the padding value most pages share) plus matching the nav's
+background to `--paper-app` so any few-px residual mismatch is
+invisible rather than a visible seam.
+
+**Real bug: conversations created on click, not on send.** "Start
+text chat" / the new floating chat button / sidebar "New conversation"
+all called `createConversation()` immediately, before the user had
+typed anything -- every click left an "Untitled conversation" behind
+in Home's Recent list even if abandoned instantly. Fixed by making
+creation lazy: these now navigate to `/chat/new` (a client-side
+sentinel, never sent to the backend); `ChatPage` only calls
+`createConversation()` inside `handleSend`, the moment a first message
+is actually sent, then swaps the URL to the real id via
+`navigate(..., {replace:true})`. Verified via direct DB query (not
+just UI) that an abandoned `/chat/new` visit leaves zero rows, and a
+sent one leaves exactly one conversation with its messages attached.
+The user's existing account already has ~8 old empty conversations
+from before this fix -- didn't delete those without asking, since it's
+their real account data, not test data.
+
+**Real bug found while debugging the above, unrelated to it:**
+`AuthContext`'s initial `getMe()` check on mount called `clearToken()`
+on *any* failure -- a network blip, a slow backend, a transient 500 --
+not just an actual 401. That means a full-page reload during any brief
+backend hiccup would silently sign the user out and bounce them to
+`/login`, discarding a perfectly valid token for reasons that had
+nothing to do with the login being invalid. Reproduced this directly
+while stress-testing the lazy-creation fix (a `page.goto()` full reload
+landed on `/login` mid-flow). Fixed: only `clearToken()` on a genuine
+`ApiError` with `status === 401`; any other error just leaves the user
+signed out *for that load* without destroying the stored token, so the
+next successful check recovers normally.
+
+**Where:** `backend/.env`, `backend/app/core/config.py` (model swap),
+`frontend/src/pages/ChatPage.{tsx,css}` (header restructure + lazy
+creation), `frontend/src/components/BackArrow.tsx` (new) + 5 call
+sites, `frontend/src/components/BottomNav.css` (gap fix),
+`frontend/src/components/ChatFAB.tsx`, `frontend/src/pages/
+HomePage.tsx` (lazy creation), `frontend/src/auth/AuthContext.tsx`
+(401-only logout).
+
+**Tested:** 6/6 checks passing end-to-end against the real backend
+(nav flush, icon present, no clutter from an abandoned new-chat, a
+real message actually getting a bot reply, exactly one conversation
+appearing afterward, zero console errors) using a real crisis-worded
+send path already exercised earlier, plus a direct DB query confirming
+row-level correctness. All test accounts cleaned from Neon.
+
+**Still open:** verified Umang/Rozan phone numbers for the crisis
+page; whether to migrate off OpenRouter to Gemini directly (asked, not
+yet decided); the user's ~8 pre-existing empty conversations (asked,
+not yet deleted).
+
+## 2026-08-24 (final) — Migrated to Gemini, re-verified lazy conversation creation
+
+**Lazy conversation creation, re-verified under direct pressure:**
+re-ran the exact scenario described ("click Start Chat repeatedly,
+whether you talk to the bot or not") -- clicked "Start text chat" 5
+times in a row, abandoning each without sending anything. Zero
+conversations left behind, confirmed against the real DB, not just
+the UI. The earlier fix holds.
+
+**Migrated the LLM provider from OpenRouter to Gemini**, at the
+user's request, using their own API key. Validated the key directly
+against Google's API first (both the native `generateContent`
+endpoint and the OpenAI-compatibility endpoint we actually use) before
+touching any code. `gemini-flash-latest` timed out repeatedly in this
+environment; `gemini-3.5-flash-lite` responded in ~1-2s in isolated
+testing with clean output for both the conversational reply and the
+JSON risk-classifier prompt, so that's what's wired in.
+- Kept the existing `openai`-SDK-based architecture in both
+  `llm_service.py` and `safety_service.py` -- Gemini's official OpenAI-
+  compatibility endpoint (`/v1beta/openai/chat/completions`) means
+  only `base_url`/`api_key` needed to change, not the call shape,
+  prompt structure, or JSON-parsing logic in either file.
+- Added `gemini_api_key`/`gemini_base_url` to `config.py`/`.env`;
+  `openrouter_api_key` kept (now unused, made optional) rather than
+  deleted, so reverting is a one-line env change, not a code change.
+- Verified end-to-end through the real UI, not just curl: a normal
+  message gets a warm Gemini reply, and a crisis-worded message still
+  correctly triggers both risk_level 3 classification *and* the
+  Grounding SOS overlay -- the safety pipeline didn't need any changes
+  to keep working with the new provider.
+- Honest note on latency: isolated single calls to Gemini were ~1-2s,
+  but full requests through the app (emotion classification + risk-
+  check LLM call + reply LLM call, sequentially) measured 15-30s in
+  this sandboxed dev environment -- consistent with the DNS/network
+  flakiness seen elsewhere this session (Neon connection blips,
+  `gemini-flash-latest` timing out entirely), not something specific
+  to the Gemini integration itself. Worth re-measuring outside this
+  environment before assuming it's still slow.
+
+**Where:** `backend/.env`, `backend/app/core/config.py`,
+`backend/app/services/{llm_service,safety_service}.py`.
+
+**Still open:** verified crisis-line numbers; the user's ~8 pre-
+existing empty conversations (asked, not yet deleted).
